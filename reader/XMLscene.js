@@ -286,7 +286,7 @@ XMLscene.prototype.getPlays = function (Board,callback, callbackObj){
 
 var board = matrixToList(Board.matrix);
 
-getPrologRequest("getPlays("+board+","+Board.currentPlayer+",2)",function(data) {
+getPrologRequest("getPlays("+board+","+Board.currentPlayer+","+ Board.currentCostLeft + ")",function(data) {
 	
 	var playList = data.target.response;
 	if (typeof callback === "function") {
@@ -334,6 +334,8 @@ XMLscene.prototype.isADest = function (pick,list){
 					var tempCoord = this.Board.destLocation[list[id]];
 					
 					console.log(coordStr + " / " + tempCoord.toString());
+					
+					this.Board.currentIDFromList = list[id];
 					
 					if(tempCoord.toString() == coord)
 						return true;

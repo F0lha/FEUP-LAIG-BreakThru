@@ -14,7 +14,12 @@ function Board(scene) {
 	this.fire = new CGFtexture(this.scene, "textures/fire.jpg");
 	
 	this.matrix;
+	
+	//play
 	this.currentPlayer = 0;
+	this.currentCostLeft = 2;
+	this.currentIDFromList = -1;
+	
 	this.prevMatrixs = [];
 	this.inAnimation = false;
 	this.currentAnimation;
@@ -41,6 +46,7 @@ Board.prototype.resetSelection = function() {
 
 	this.selectedID = -1;
 	this.listSelected = [];
+	this.currentIDFromList = -1;
 
 }
 
@@ -71,10 +77,15 @@ Board.prototype.newMatrix = function(newMatrix) {
 }
 
 Board.prototype.updateBoard = function() {
-	//cost left 0 -> muda jogador
-	if(this.currentPlayer == 0)
-		this.currentPlayer = 1;
-	else this.currentPlayer = 0;
+	
+	this.currentCostLeft = this.costMove[this.currentIDFromList];
+	
+	if(this.currentCostLeft == 0){
+		if(this.currentPlayer == 0)
+			this.currentPlayer = 1;
+		else this.currentPlayer = 0;
+		this.currentCostLeft = 2;
+	}
 	this.resetSelection();
 }
 
