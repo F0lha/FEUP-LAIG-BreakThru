@@ -333,8 +333,6 @@ XMLscene.prototype.isADest = function (pick,list){
 				{
 					var tempCoord = this.Board.destLocation[list[id]];
 					
-					console.log(coordStr + " / " + tempCoord.toString());
-					
 					this.Board.currentIDFromList = list[id];
 					
 					if(tempCoord.toString() == coord)
@@ -368,7 +366,6 @@ XMLscene.prototype.Picking = function ()
 					break;
 					
 				case "PRESSED":
-					console.log("yo");
 					if(this.Board.selectedID == pick){ //reset selection
 						this.Board.resetSelection();
 						this.state = "IDLE";
