@@ -118,12 +118,15 @@ Board.prototype.display = function() {
 			
 			case 1:	this.scene.translate(0,2,0);		
 					//this.atackingPiece.display();
+					this.scene.board[i].display();
 					break;
 			case 2: this.scene.translate(0,2,0);		
 					//this.defendingPiece.display();
+					this.scene.board[i].display();
 					break;
 			case 5: this.scene.translate(0,2,0);		
 					//this.motherShip.display();
+					this.scene.board[i].display();
 					break;
 			default:
 					break;

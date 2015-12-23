@@ -5,6 +5,15 @@ function XMLscene() {
 	
 	this.currTimer = 0;
 	this.timerLastUpdate = 0;
+	
+	//interface
+	
+	
+	this.currplayer1Dificulty = "Human";
+	this.currplayer2Dificulty = "Human";
+	
+	this.player1Dificulty = ["Human", "Easy", "Hard"];
+	this.player2Dificulty = ["Human", "Easy", "Hard"];
 
 	this.flag = true;
 	this.state = "PROCESSING";
@@ -23,6 +32,8 @@ XMLscene.prototype.Controls = function () {
 
 XMLscene.prototype.init = function (application) {
     CGFscene.prototype.init.call(this, application);
+	
+	this.interF = null;
 	
     this.initCameras();
 	
@@ -227,11 +238,12 @@ XMLscene.prototype.onGraphLoaded = function () {
 	
 	this.loadTextures();
 	
-	//this.loadInterface();
-	
 	this.loadAnimations();
 	
 	this.setUpdatePeriod(100/6);
+	
+	if (this.interF != null)
+	    this.interF.onGraphLoaded();
 	
 	this.Board = new Board(this);
 	
@@ -428,10 +440,9 @@ XMLscene.prototype.loadAnimations = function () {
 /*	
 *	Creates MyInterface and sets it as the project interface
 */ 
-XMLscene.prototype.loadInterface = function () {
+XMLscene.prototype.setInterface = function (interF) {
 
-	var newInteface = new MyInterface(this);
-	this.app.setInterface(newInteface);
+	this.interF = interF;
 
 }
 /*
@@ -452,11 +463,14 @@ XMLscene.prototype.displayLights = function () {
 		}
 
 }
+
+XMLscene.prototype.play = function () {
+
+console.log("yey");
+
+}
 	
 XMLscene.prototype.display = function () {
-
-	this.Picking();
-	this.clearPickRegistration();
 
 	// ---- BEGIN Background, camera and axis setup
 
@@ -483,6 +497,26 @@ XMLscene.prototype.display = function () {
 	if (this.graph.loadedOk)
 	{
 		//this.initialTransformations();
+		
+		this.interF.updateInterface();
+		
+		if(this.Board.currentPlayer == 0 && this.currplayer1Dificulty == "Human"){
+			this.setPickEnabled(true);
+			this.Picking();
+			this.clearPickRegistration();
+		}
+		else if(this.Board.currentPlayer == 1 && this.currplayer2Dificulty == "Human"){
+			this.setPickEnabled(true);
+			this.Picking();
+			this.clearPickRegistration();
+		}
+		else{//bot plays
+		this.setPickEnabled(false);
+		
+		
+	
+	
+		}
 			
 		// Draw axis
 		if (this.axis.length != 0) 

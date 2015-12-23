@@ -1,39 +1,10 @@
-/*function MyInterface(scene) {
-	CGFinterface.call(this);
-};
-
-MyInterface.prototype = Object.create(CGFinterface.prototype);
-MyInterface.prototype.constructor = MyInterface;
-
-MyInterface.prototype.init = function(application) {
-	
-	CGFinterface.prototype.init.call(this, application);
-	
-	this.gui = new dat.GUI();
-
-	this.gui.add(this.scene, 'GUI');	
-	
-	var lights=this.gui.addFolder("Luzes");
-	lights.open();
-	var i = 0;
-	for(light in this.scene.graph.lights)
-		{
-		var string = "Luz " + i;
-		lights.add(this.scene, string);
-		}
-
-	return true;
-};
-
-*/
-
 /**
  * MyInterface
  * @constructor
  */
  
  
-function MyInterface(scene) {
+function MyInterface() {
 	//call CGFinterface constructor 
 	CGFinterface.call(this);
 };
@@ -46,6 +17,9 @@ MyInterface.prototype.constructor = MyInterface;
  * @param {CGFapplication} application
  */
 MyInterface.prototype.init = function(application) {
+
+	this.player1Play = false;
+	this.player2Play = false;
 	
 	// call CGFinterface init
 	CGFinterface.prototype.init.call(this, application);
@@ -60,15 +34,53 @@ MyInterface.prototype.init = function(application) {
 	// the identifier 'doSomething' must be a function declared as part of that object (i.e. a member of the scene class)
 	// e.g. LightingScene.prototype.doSomething = function () { console.log("Doing something..."); }; 
 
+
+};
+
+MyInterface.prototype.updateInterface = function(){
+	if(this.scene.currplayer1Dificulty != "Human" && !this.player1Play){
+		this.button1 = this.player1.add(this.scene, "play");
+		this.player1Play = true;
+	}
+	else if(this.scene.currplayer1Dificulty == "Human" && this.player1Play)
+	{
+		this.player1.remove(this.button1);
+		this.player1Play = false;
+	}
+		
+	if(this.scene.currplayer2Dificulty != "Human" && !this.player2Play){
+		this.button2 = this.player2.add(this.scene, "play");
+		this.player2Play = true;
+	}
+	else if(this.scene.currplayer2Dificulty == "Human" && this.player2Play)
+	{
+		this.player1.remove(this.button2);
+		this.player2Play = false;
+	}
+}
+
+MyInterface.prototype.onGraphLoaded = function(){
 	this.gui.add(this.scene, 'Controls');	
 
-	// add a group of controls (and open/expand by defult)
+	// add a group of controls (and open/expand by default)
 	
 	var lights=this.gui.addFolder("Luzes");
 	for(id in this.scene.lightsInterface)
 	{
 		lights.add(this.scene.lightsInterface,id,this.scene.lightsInterface[id]);
 	}
+	
+	this.player1=this.gui.addFolder("Player1");
+	
+	this.player1.add(this.scene, 'currplayer1Dificulty', this.scene.player1Dificulty);
+	
+	
+	
+	this.player2=this.gui.addFolder("Player2");
+	
+	this.player2.add(this.scene, 'currplayer2Dificulty', this.scene.player2Dificulty);
+	
+	
 
 	return true;
-};
+}

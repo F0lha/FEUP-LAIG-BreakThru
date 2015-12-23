@@ -21,7 +21,7 @@ main=function()
 	// Standard application, scene and interface setup
     var app = new CGFapplication(document.body);
     var myScene = new XMLscene();
-    var myInterface = new CGFinterface(myScene);
+    var myInterface = new MyInterface();
 	
 	myScene.interface = myInterface;
 	myScene.app = app;
@@ -29,6 +29,8 @@ main=function()
 
     app.setScene(myScene);
     app.setInterface(myInterface);
+	
+	myScene.setInterface(myInterface);
 
     myInterface.setActiveCamera(myScene.camera);
 

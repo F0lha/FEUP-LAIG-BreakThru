@@ -111,6 +111,8 @@ parse_input(quit, goodbye).
 
 %% New Functions
 
+parse_input(playRandom(Board,Player,CostLeft),[NewBoard,CostToSpend]):-getRandomMove(Board,Player,CostLeft,X,Y,XF,YF,CostToSpend),movePiece(Board,X,Y,XF,YF,NewBoard)
+
 parse_input(makePlay(Board,X,Y,XF,YF),NewBoard):-movePiece(Board,X,Y,XF,YF,NewBoard).
 
 parse_input(initialize,InitialBoard):- initial_board(InitialBoard).
