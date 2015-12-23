@@ -6,6 +6,7 @@ function XMLscene() {
 	this.currTimer = 0;
 	this.timerLastUpdate = 0;
 
+	this.flag = true;
 	this.state = "PROCESSING";
 	this.board = [];
 	this.texturesList = {};
@@ -33,6 +34,8 @@ XMLscene.prototype.init = function (application) {
     this.gl.depthFunc(this.gl.LEQUAL);
 
 	this.axis=new CGFaxis(this);
+	
+	this.setPickEnabled(true);
 };
 /*
 *	Sets the background color and global ambient lighting
@@ -129,7 +132,8 @@ XMLscene.prototype.loadPrimitives = function () {
     			this.primitiveList[id] = new MyQuad(this, tempLeaf.args[0], tempLeaf.args[1], tempLeaf.args[2], tempLeaf.args[3]);
     			break;
     		case "triangle":
-    			this.primitiveList[id] = new MyTriangle(this, tempLeaf.args[0], tempLeaf.args[1], tempLeaf.args[2], tempLeaf.args[3], tempLeaf.args[4], tempLeaf.args[5], tempLeaf.args[6], tempLeaf.args[7], tempLeaf.args[8]);
+    			this.primitiveList[id] = new MyTriangle(this, tempLeaf.args[0], tempLeaf.args[1], tempLeaf.args[2], tempLeaf.args[3], tempLeaf.args[4], 
+tempLeaf.args[5], tempLeaf.args[6], tempLeaf.args[7], tempLeaf.args[8]);
 				break;
     		case "cylinder":
 				this.primitiveList[id] = new MyCylinder(this, tempLeaf.args[0], tempLeaf.args[1], tempLeaf.args[2], tempLeaf.args[3], tempLeaf.args[4]);
@@ -169,10 +173,14 @@ XMLscene.prototype.initLights = function () {
 			tempLight.enable();
 		else tempLight.disable();
 				
-		tempLight.setPosition(this.graph.lights[light].positionX,this.graph.lights[light].positionY,this.graph.lights[light].positionZ,this.graph.lights[light].positionW);
-		tempLight.setAmbient(this.graph.lights[light].ambientR,this.graph.lights[light].ambientG,this.graph.lights[light].ambientB,this.graph.lights[light].ambientA);
-		tempLight.setDiffuse(this.graph.lights[light].diffuseR,this.graph.lights[light].diffuseG,this.graph.lights[light].diffuseB,this.graph.lights[light].diffuseA);
-		tempLight.setSpecular(this.graph.lights[light].specularR,this.graph.lights[light].specularG,this.graph.lights[light].specularB,this.graph.lights[light].specularA);
+		tempLight.setPosition(this.graph.lights[light].positionX,this.graph.lights[light].positionY,this.graph.lights[light].positionZ,this.graph.lights[light
+].positionW);
+		tempLight.setAmbient(this.graph.lights[light].ambientR,this.graph.lights[light].ambientG,this.graph.lights[light].ambientB,this.graph.lights[light].
+ambientA);
+		tempLight.setDiffuse(this.graph.lights[light].diffuseR,this.graph.lights[light].diffuseG,this.graph.lights[light].diffuseB,this.graph.lights[light].
+diffuseA);
+		tempLight.setSpecular(this.graph.lights[light].specularR,this.graph.lights[light].specularG,this.graph.lights[light].specularB,this.graph.lights[light
+].specularA);
 	
 		tempLight.setVisible(true);
 		
@@ -199,7 +207,7 @@ XMLscene.prototype.setDefaultAppearance = function () {
 // As loading is asynchronous, this may be called already after the application has started the run loop
 XMLscene.prototype.onGraphLoaded = function () {
 
-	this.setPickEnabled(true);
+	
 
 	this.camera.near = this.graph.near;
     this.camera.far = this.graph.far;
@@ -219,7 +227,7 @@ XMLscene.prototype.onGraphLoaded = function () {
 	
 	this.loadTextures();
 	
-	this.loadInterface();
+	//this.loadInterface();
 	
 	this.loadAnimations();
 	
@@ -234,7 +242,6 @@ XMLscene.prototype.onGraphLoaded = function () {
 	this.initBoard(
         function(matrix){
         self.Board.init(matrix);
-		self.boardInitialized = true;
         }
     );
 	this.getPlays(this.Board,function(listPlays) {
@@ -243,6 +250,34 @@ XMLscene.prototype.onGraphLoaded = function () {
 	});
 	
 };
+
+XMLscene.prototype.pickToCoord = function(pick) {
+
+				var Y = (Math.floor(pick/11))+1;
+				var X = (pick % 11)+1;
+				var coord = new Array(X,Y);
+
+return coord;
+
+}
+
+XMLscene.prototype.makePlays = function (Board,finalPick,callback, callbackObj){
+
+	var initC = this.pickToCoord(Board.selectedID);
+	var finalC = this.pickToCoord(finalPick);
+
+
+	var board = matrixToList(Board.matrix);
+
+getPrologRequest("makePlay("+board+","+initC[0]+","+initC[1]+","+finalC[0]+","+finalC[1]+")",function(data) {
+	
+	var matrix = listToMatrix(data.target.response);
+	if (typeof callback === "function") {
+              callback.apply(callbackObj,[matrix]);
+        }
+	},true);
+
+}
 
 /*
 *	Gets the possible plays from PROLOG based on current player
@@ -276,64 +311,94 @@ XMLscene.prototype.initBoard = function (callback, callbackObj){
 }
 
 /*
-* 
+*  Gets list of pieces based on picking
 */
 
 XMLscene.prototype.getListOfPicking = function (pick){
 
-					var Y = (Math.floor(pick/11))+1;
-					var X = (pick % 11)+1;
-					var coord = new Array(X,Y);
-					var coordStr = coord.toString();
+				var coord = this.pickToCoord(pick);
+				var coordStr = coord.toString();
 					
-					var list = this.getIdPieceLocation(coordStr);
+				var list = this.getIdPieceLocation(coordStr);
 
-return list;
+		return list;
 }
 
-XMLscene.prototype.logPicking = function ()
+XMLscene.prototype.isADest = function (pick,list){
+
+			var coord = this.pickToCoord(pick);
+			var coordStr = coord.toString();
+			
+			for(id in list)
+				{
+					var tempCoord = this.Board.destLocation[list[id]];
+					
+					console.log(coordStr + " / " + tempCoord.toString());
+					
+					if(tempCoord.toString() == coord)
+						return true;
+				}
+				
+		return false;
+}
+
+XMLscene.prototype.Picking = function ()
 {
 	if (this.pickMode == false) {
 		if (this.pickResults != null && this.pickResults.length > 0) {
 			for (var i=0; i< this.pickResults.length; i++) {
-				var obj = this.pickResults[i][0];
+			var obj = this.pickResults[i][0];
+			if (obj)
+			{
 				var pick = this.pickResults[i][1] - 1;	
-				if (obj)
-				{
 				//State machine for picking
 				switch(this.state){
 				case "IDLE":
-				
 					var list = this.getListOfPicking(pick);
 					
-					if(this.Board.selectedID == pick){ //reset selection
-						this.Board.resetSelection();
-						}
-					else if(list.length != 0)
+					if(list.length != 0){
 						this.Board.defineSelection(pick,list);
-					this.state = "PRESSED";
+						this.state = "PRESSED";
+						}
 					break;
 				case "PROCESSING":
+				// waiting for requests	
 					break;
 					
 				case "PRESSED":
-					this.state = "IDLE";
+					console.log("yo");
+					if(this.Board.selectedID == pick){ //reset selection
+						this.Board.resetSelection();
+						this.state = "IDLE";
+						}
+					else if(this.isADest(pick,this.Board.listSelected))
+						{
+							var self = this;
+						
+							this.makePlays(this.Board,pick,function(NewMatrix) {
+							self.Board.newMatrix(NewMatrix);
+							//make animation
+							self.Board.updateBoard();
+							self.getPlays(self.Board,function(listPlays) {
+								self.Board.parsingPlays(listPlays);
+								self.state = "IDLE";
+								});
+							});
+						}
+						break;
 				default: 
 					break;
-				}
-				
-				/*
-					var customId = this.pickResults[i][1];				
-					console.log("Picked object: " + obj + ", with pick id " + customId);
-					
-				*/
-				}
+				}				
 			}
-			this.pickResults.splice(0,this.pickResults.length);
-		}		
+		}
+		this.pickResults.splice(0,this.pickResults.length);
+		}	
 	}
 }
 
+/*
+* 	Returns the list of the Movable Pieces
+*/
 XMLscene.prototype.getIdPieceLocation = function (coord) {
 
 var list = [];
@@ -391,16 +456,16 @@ XMLscene.prototype.displayLights = function () {
 	
 XMLscene.prototype.display = function () {
 
-	this.logPicking();
+	this.Picking();
 	this.clearPickRegistration();
-	
 
 	// ---- BEGIN Background, camera and axis setup
 
 	
-	// Clear image and depth buffer everytime we update the scene
+	// Clear image and depth buffer every time we update the scene
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+    this.gl.enable(this.gl.DEPTH_TEST);
 
 	// Initialize Model-View matrix as identity (no transformation
 	this.updateProjectionMatrix();
@@ -418,7 +483,6 @@ XMLscene.prototype.display = function () {
 	// This is one possible way to do it
 	if (this.graph.loadedOk)
 	{
-	
 		//this.initialTransformations();
 			
 		// Draw axis
@@ -427,10 +491,11 @@ XMLscene.prototype.display = function () {
 			
 		this.displayLights();
 		
-		if(this.boardInitialized){
-			//this.registPicking();
-			this.Board.display();
-		}
+		
+			
+		this.Board.display();
+
+		
 		
 		//this.drawNode(this.graph.rootID,'null','null');
 

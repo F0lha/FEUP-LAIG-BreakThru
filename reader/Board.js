@@ -57,25 +57,25 @@ Board.prototype.init = function(matrix) {
 for (var row = 0; row < this.nRow; ++row) {
         for (var col = 0; col < this.nCol; ++col) {
 			this.scene.board[i] = new emptySpace(this.scene);
+			this.scene.registerForPick(i+1,this.scene.board[i]);
 			i++;
 		}
 	}
 	
 }
-Board.prototype.newMatrix = function(newMatrix,initCoord,finalCoord) {
 
-if(this.matrix[finalCoord[0]][finalCoord[1]] != 0){
-	this.inAnimation = true;
-	//Animacao de comer
-	}
-	else {
-	
-	this.inAnimation = true;
-	//animacao de andar
-	}
+Board.prototype.newMatrix = function(newMatrix) {
 
 	this.prevMatrixs.push(this.matrix);
 	this.matrix = newMatrix;
+}
+
+Board.prototype.updateBoard = function() {
+	//cost left 0 -> muda jogador
+	if(this.currentPlayer == 0)
+		this.currentPlayer = 1;
+	else this.currentPlayer = 0;
+	this.resetSelection();
 }
 
 Board.prototype.parsingPlays = function(playList) {
@@ -83,11 +83,8 @@ Board.prototype.parsingPlays = function(playList) {
 var temp = listToMatrix(playList);
 
 this.piecesLocation = temp[0];
-console.log(this.piecesLocation);
 this.destLocation = temp[1];
-console.log(this.destLocation);
 this.costMove = temp[2];
-console.log(this.costMove);
 
 }
 

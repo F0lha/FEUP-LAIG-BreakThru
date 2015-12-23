@@ -111,8 +111,9 @@ parse_input(quit, goodbye).
 
 %% New Functions
 
-parse_input(initialize,InitialBoard):- initial_board(InitialBoard).
+parse_input(makePlay(Board,X,Y,XF,YF),NewBoard):-movePiece(Board,X,Y,XF,YF,NewBoard).
 
+parse_input(initialize,InitialBoard):- initial_board(InitialBoard).
 
 parse_input(getPlays(Board,Player,CostLeft),[InitList,EndList,CostList]):- listAllPossibleMoves(Board,Player,CostLeft,List),
 															parsingListOfPlays(List,InitList,EndList,CostList).
