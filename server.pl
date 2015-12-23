@@ -111,7 +111,12 @@ parse_input(quit, goodbye).
 
 %% New Functions
 
-parse_input(playRandom(Board,Player,CostLeft),[NewBoard,CostToSpend]):-getRandomMove(Board,Player,CostLeft,X,Y,XF,YF,CostToSpend),movePiece(Board,X,Y,XF,YF,NewBoard)
+parse_input(continue(Board),0):-continueGame(Board).
+parse_input(continue(Board),1).
+
+parse_input(playBest(Board,Player,CostLeft),[NewBoard,CostToSpend]):-getBestMove(Board,Player,X,Y,XF,YF,CostLeft,CostToSpend),movePiece(Board,X,Y,XF,YF,NewBoard).
+
+parse_input(playRandom(Board,Player,CostLeft),[NewBoard,CostToSpend]):-getRandomMove(Board,Player,CostLeft,X,Y,XF,YF,CostToSpend),movePiece(Board,X,Y,XF,YF,NewBoard).
 
 parse_input(makePlay(Board,X,Y,XF,YF),NewBoard):-movePiece(Board,X,Y,XF,YF,NewBoard).
 

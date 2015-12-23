@@ -9,8 +9,8 @@ function XMLscene() {
 	//interface
 	
 	
-	this.currplayer1Dificulty = "Human";
-	this.currplayer2Dificulty = "Human";
+	this.Player1Difficulty = "Human";
+	this.Player2Difficulty = "Human";
 	
 	this.player1Dificulty = ["Human", "Easy", "Hard"];
 	this.player2Dificulty = ["Human", "Easy", "Hard"];
@@ -43,10 +43,27 @@ XMLscene.prototype.init = function (application) {
     this.gl.enable(this.gl.DEPTH_TEST);
 	this.gl.enable(this.gl.CULL_FACE);
     this.gl.depthFunc(this.gl.LEQUAL);
-
+	
 	this.axis=new CGFaxis(this);
 	
 	this.setPickEnabled(true);
+	
+		
+	this.textShader=new CGFshader(this.gl, "shaders/font.vert", "shaders/font.frag");
+
+	// set number of rows and columns in font texture
+	this.textShader.setUniformsValues({'dims': [16, 16]});
+	
+	this.appearance = new CGFappearance(this);
+	this.appearance.setAmbient(0.3, 0.3, 0.3, 1);
+	this.appearance.setDiffuse(0.7, 0.7, 0.7, 1);
+	this.appearance.setSpecular(0.0, 0.0, 0.0, 1);	
+	this.appearance.setShininess(120);
+
+	// font texture: 16 x 16 characters
+	// http://jens.ayton.se/oolite/files/font-tests/rgba/oolite-font.png
+	this.fontTexture = new CGFtexture(this, "textures/oolite-font.png");
+	this.appearance.setTexture(this.fontTexture);
 };
 /*
 *	Sets the background color and global ambient lighting
@@ -241,13 +258,24 @@ XMLscene.prototype.onGraphLoaded = function () {
 	this.loadAnimations();
 	
 	this.setUpdatePeriod(100/6);
+		
+	this.RESETBOARD();
 	
 	if (this.interF != null)
 	    this.interF.onGraphLoaded();
 	
-	this.Board = new Board(this);
+};
+
+/*
+*	Reset Board and Initialize it
+*/
+XMLscene.prototype.RESETBOARD = function() {
+
+	this.state = "PROCESSING";
+
+	this.Board = null;
 	
-	this.boardInitialized = false;
+	this.Board = new Board(this);
 	
 	var self = this;
 	
@@ -260,32 +288,108 @@ XMLscene.prototype.onGraphLoaded = function () {
 					self.Board.parsingPlays(listPlays);
 					self.state = "IDLE";
 	});
-	
-};
 
+}
+
+/*
+*	Returns array of coord from pick
+*/
 XMLscene.prototype.pickToCoord = function(pick) {
 
-				var Y = (Math.floor(pick/11))+1;
-				var X = (pick % 11)+1;
-				var coord = new Array(X,Y);
+			var Y = (Math.floor(pick/11))+1;
+			var X = (pick % 11)+1;
+			var coord = new Array(X,Y);
 
 return coord;
 
 }
 
-XMLscene.prototype.makePlays = function (Board,finalPick,callback, callbackObj){
+/*
+*	Makes request to PROLOG to check if game has finished
+*/
+XMLscene.prototype.continueGame = function (self,callback, callbackObj){
 
-	var initC = this.pickToCoord(Board.selectedID);
+	self.state = "PROCESSING"; // waiting for requests
+
+	var board = matrixToList(self.Board.matrix);
+
+	getPrologRequest("continue("+board+")",function(data) {
+	
+	var answer = data.target.response;
+	
+	if (typeof callback === "function") {
+              callback.apply(callbackObj,[answer]);
+        }
+	},true);
+}
+/*
+*	Makes the Bot Hard Play in PROLOG server and returns the NewBoard
+*/
+XMLscene.prototype.makeHardPlay = function (self,callback, callbackObj){
+
+	self.state = "PROCESSING"; // waiting for requests
+
+	var board = matrixToList(self.Board.matrix);
+
+	getPrologRequest("playBest("+board+","+self.Board.currentPlayer+","+ self.Board.currentCostLeft +")",function(data) {
+	
+	var temp = listToMatrix(data.target.response);
+	
+	var matrix = temp[0];
+	
+	self.Board.updateCostLeft(temp[1]);
+	
+	if (typeof callback === "function") {
+              callback.apply(callbackObj,[self,matrix]);
+        }
+	},true);
+
+}
+
+/*
+*	Makes the Bot Easy Play in PROLOG server and returns the NewBoard
+*/
+XMLscene.prototype.makeEasyPlay = function (self,callback, callbackObj){
+
+	self.state = "PROCESSING"; // waiting for requests
+
+	var board = matrixToList(self.Board.matrix);
+
+	getPrologRequest("playRandom("+board+","+self.Board.currentPlayer+","+ self.Board.currentCostLeft +")",function(data) {
+	
+	var temp = listToMatrix(data.target.response);
+	
+	var matrix = temp[0];
+	
+	self.Board.updateCostLeft(temp[1]);
+	
+	if (typeof callback === "function") {
+              callback.apply(callbackObj,[self,matrix]);
+        }
+	},true);
+
+}
+
+/*
+*	Makes the play in PROLOG server and returns the NewBoard
+*/
+
+XMLscene.prototype.makePlays = function (self,finalPick,callback, callbackObj){
+
+	var initC = this.pickToCoord(self.Board.selectedID);
 	var finalC = this.pickToCoord(finalPick);
 
 
-	var board = matrixToList(Board.matrix);
+	var board = matrixToList(self.Board.matrix);
 
 getPrologRequest("makePlay("+board+","+initC[0]+","+initC[1]+","+finalC[0]+","+finalC[1]+")",function(data) {
 	
 	var matrix = listToMatrix(data.target.response);
+	
+	self.Board.updateCostLeft(self.Board.costMove[self.Board.currentIDFromList]);
+	
 	if (typeof callback === "function") {
-              callback.apply(callbackObj,[matrix]);
+              callback.apply(callbackObj,[self,matrix]);
         }
 	},true);
 
@@ -336,6 +440,9 @@ XMLscene.prototype.getListOfPicking = function (pick){
 		return list;
 }
 
+/*
+*	Returns true if the current pick is a possible destination, false if not
+*/
 XMLscene.prototype.isADest = function (pick,list){
 
 			var coord = this.pickToCoord(pick);
@@ -354,6 +461,26 @@ XMLscene.prototype.isADest = function (pick,list){
 		return false;
 }
 
+XMLscene.prototype.putBoardAndGetPlays = function (self,matrix){
+							self.Board.newMatrix(matrix);
+							self.continueGame(self,function(answer) {
+								if(answer == 1){
+									self.state = "GAMEOVER";
+									self.Board.resetSelection();
+									}
+							});
+							if(self.state != "GAMEOVER"){
+							self.Board.updateBoard();
+							self.getPlays(self.Board,function(listPlays) {
+								self.Board.parsingPlays(listPlays);
+								self.state = "IDLE";
+								});
+								}
+}
+
+/*
+*	Process the Picking
+*/
 XMLscene.prototype.Picking = function ()
 {
 	if (this.pickMode == false) {
@@ -386,15 +513,7 @@ XMLscene.prototype.Picking = function ()
 						{
 							var self = this;
 						
-							this.makePlays(this.Board,pick,function(NewMatrix) {
-							self.Board.newMatrix(NewMatrix);
-							//make animation
-							self.Board.updateBoard();
-							self.getPlays(self.Board,function(listPlays) {
-								self.Board.parsingPlays(listPlays);
-								self.state = "IDLE";
-								});
-							});
+							this.makePlays(self,pick,this.putBoardAndGetPlays);
 						}
 						break;
 				default: 
@@ -464,12 +583,48 @@ XMLscene.prototype.displayLights = function () {
 
 }
 
-XMLscene.prototype.play = function () {
 
-console.log("yey");
-
+/*
+*	Bot Play
+*/
+XMLscene.prototype.PLAY = function () {
+	if(this.state == "IDLE")
+	{
+		var self = this;
+		
+		switch(this.Board.currentPlayer){
+		
+			case 0:
+				if(this.Player1Difficulty == "Easy")
+					{
+						this.makeEasyPlay(self,this.putBoardAndGetPlays);
+					}
+				else if(this.Player1Difficulty == "Hard")
+					{
+						this.makeHardPlay(self,this.putBoardAndGetPlays);
+					}
+				break;
+			case 1:
+				if(this.Player2Difficulty == "Easy")
+					{
+						this.makeEasyPlay(self,this.putBoardAndGetPlays);
+					}
+				else if(this.Player2Difficulty == "Hard")
+					{
+						this.makeHardPlay(self,this.putBoardAndGetPlays);
+					}
+				break;
+		
+		}
+	
+	
+	}
 }
 	
+	
+/*
+*	Default display function
+*/	
 XMLscene.prototype.display = function () {
 
 	// ---- BEGIN Background, camera and axis setup
@@ -496,26 +651,26 @@ XMLscene.prototype.display = function () {
 	// This is one possible way to do it
 	if (this.graph.loadedOk)
 	{
-		//this.initialTransformations();
+		this.initialTransformations();
 		
 		this.interF.updateInterface();
-		
-		if(this.Board.currentPlayer == 0 && this.currplayer1Dificulty == "Human"){
-			this.setPickEnabled(true);
-			this.Picking();
-			this.clearPickRegistration();
-		}
-		else if(this.Board.currentPlayer == 1 && this.currplayer2Dificulty == "Human"){
-			this.setPickEnabled(true);
-			this.Picking();
-			this.clearPickRegistration();
-		}
-		else{//bot plays
+		if(this.state != "GAMEOVER")
+			if(this.Board.currentPlayer == 0 && this.Player1Difficulty == "Human"){
+				this.setPickEnabled(true);
+				this.Picking();
+				this.clearPickRegistration();
+			}
+			else if(this.Board.currentPlayer == 1 && this.Player2Difficulty == "Human"){
+				this.setPickEnabled(true);
+				this.Picking();
+				this.clearPickRegistration();
+			}	
+			else{
+				//bot plays
+				this.setPickEnabled(false);
+			}
+		else {
 		this.setPickEnabled(false);
-		
-		
-	
-	
 		}
 			
 		// Draw axis
@@ -525,12 +680,20 @@ XMLscene.prototype.display = function () {
 		this.displayLights();
 		
 		
-			
-		this.Board.display();
+		//Board display
+		
 
 		
 		
-		//this.drawNode(this.graph.rootID,'null','null');
+		this.drawNode(this.graph.rootID,'null','null');
+		
+		this.pushMatrix();
+		
+		this.translate(200,200,200);
+		
+		this.Board.display();
+		
+		this.popMatrix();
 
 	};
 

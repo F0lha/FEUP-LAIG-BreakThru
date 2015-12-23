@@ -25,15 +25,11 @@ function matrixToList(matrix) {
 	
 	list += "]";
 		
-	console.log(list);
-		
 	return list;
 
 }
 
 function listToMatrix(list) {
-
-	console.log(list);
 
 	return JSON.parse(list);
 
