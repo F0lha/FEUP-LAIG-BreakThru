@@ -6,7 +6,7 @@ function MyLinearAnimation(scene, span, controlPoints) {
 	this.distance = 0;
 	this.currentDistance = 0;
 	this.distanceList = {};
-	this.currentTranslation = controlPoints[0];
+	this.currentTranslation = vec3.create(controlPoints[0]);
 	this.currentRotation = 0;
 	this.currentJ = 0;
 	

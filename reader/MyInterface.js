@@ -63,9 +63,6 @@ MyInterface.prototype.updateInterface = function(){
 }
 
 MyInterface.prototype.onGraphLoaded = function(){
-	this.gui.add(this.scene, 'Controls');	
-
-	// add a group of controls (and open/expand by default)
 	
 	var lights=this.gui.addFolder("Luzes");
 	for(id in this.scene.lightsInterface)
@@ -77,18 +74,21 @@ MyInterface.prototype.onGraphLoaded = function(){
 	this.player1.open();
 	
 	this.player1.add(this.scene, 'Player1Difficulty', this.scene.player1Dificulty);
-	
+	this.player1.add(this.scene.Board,"Player1Name");
 	
 	
 	this.player2=this.gui.addFolder("Player2");
 	this.player2.open();
 	
 	this.player2.add(this.scene, 'Player2Difficulty', this.scene.player2Dificulty);
+	this.player2.add(this.scene.Board,"Player2Name");
 	
 	//restartButton
 	
 	this.gui.add(this.scene, "RESETBOARD");
 	
-
+	//undoButton
+	this.gui.add(this.scene.Board, "UNDO");
+	
 	return true;
 }

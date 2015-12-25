@@ -26,10 +26,6 @@ function XMLscene() {
 XMLscene.prototype = Object.create(CGFscene.prototype);
 XMLscene.prototype.constructor = XMLscene;
 
-XMLscene.prototype.Controls = function () {
-	console.log("Controls init");
-};
-
 XMLscene.prototype.init = function (application) {
     CGFscene.prototype.init.call(this, application);
 	
@@ -43,6 +39,8 @@ XMLscene.prototype.init = function (application) {
     this.gl.enable(this.gl.DEPTH_TEST);
 	this.gl.enable(this.gl.CULL_FACE);
     this.gl.depthFunc(this.gl.LEQUAL);
+	this.gl.enable(this.gl.BLEND);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 	
 	this.axis=new CGFaxis(this);
 	
@@ -249,15 +247,15 @@ XMLscene.prototype.onGraphLoaded = function () {
 
 	this.initLights();	
 	
-	this.loadPrimitives();
+	//this.loadPrimitives();
 	
-	this.loadMaterials();
+	//this.loadMaterials();
 	
-	this.loadTextures();
+	//this.loadTextures();
 	
-	this.loadAnimations();
+	//this.loadAnimations();
 	
-	this.setUpdatePeriod(100/6);
+	this.setUpdatePeriod(50/6);
 		
 	this.RESETBOARD();
 	
@@ -454,7 +452,7 @@ XMLscene.prototype.isADest = function (pick,list){
 					
 					this.Board.currentIDFromList = list[id];
 					
-					if(tempCoord.toString() == coord)
+					if(tempCoord.toString() == coordStr)
 						return true;
 				}
 				
@@ -465,17 +463,22 @@ XMLscene.prototype.putBoardAndGetPlays = function (self,matrix){
 							self.Board.newMatrix(matrix);
 							self.continueGame(self,function(answer) {
 								if(answer == 1){
-									self.state = "GAMEOVER";
+									self.Board.gameOver = true;
 									self.Board.resetSelection();
 									}
+								else 
+									{
+										self.Board.resetSelection();
+										self.state = "ANIMATION";
+									}
 							});
-							if(self.state != "GAMEOVER"){
+							if(!self.Board.gameOver){
 							self.Board.updateBoard();
 							self.getPlays(self.Board,function(listPlays) {
 								self.Board.parsingPlays(listPlays);
-								self.state = "IDLE";
 								});
 								}
+
 }
 
 /*
@@ -507,7 +510,6 @@ XMLscene.prototype.Picking = function ()
 				case "PRESSED":
 					if(this.Board.selectedID == pick){ //reset selection
 						this.Board.resetSelection();
-						this.state = "IDLE";
 						}
 					else if(this.isADest(pick,this.Board.listSelected))
 						{
@@ -537,7 +539,7 @@ var list = [];
 		{
 			var temp = this.Board.piecesLocation[id].toString();
 			if(temp == coord)
-				list.push(id);
+				list.push(parseInt(id));
 		}
 	return list;
 }
@@ -651,10 +653,12 @@ XMLscene.prototype.display = function () {
 	// This is one possible way to do it
 	if (this.graph.loadedOk)
 	{
-		this.initialTransformations();
+		//this.initialTransformations();
 		
 		this.interF.updateInterface();
-		if(this.state != "GAMEOVER")
+		
+		console.log("Estado" + this.state);
+		if(!this.Board.gameOver &&  this.state != "ANIMATION"){
 			if(this.Board.currentPlayer == 0 && this.Player1Difficulty == "Human"){
 				this.setPickEnabled(true);
 				this.Picking();
@@ -668,7 +672,7 @@ XMLscene.prototype.display = function () {
 			else{
 				//bot plays
 				this.setPickEnabled(false);
-			}
+			}}
 		else {
 		this.setPickEnabled(false);
 		}
@@ -679,18 +683,12 @@ XMLscene.prototype.display = function () {
 			
 		this.displayLights();
 		
-		
-		//Board display
-		
-
-		
-		
-		this.drawNode(this.graph.rootID,'null','null');
+		//this.drawNode(this.graph.rootID,'null','null');
 		
 		this.pushMatrix();
 		
-		this.translate(200,200,200);
-		
+		//this.translate(200,200,200);
+				
 		this.Board.display();
 		
 		this.popMatrix();
@@ -786,7 +784,6 @@ XMLscene.prototype.animate = function (currNode) {
 	}
 }
 
-
 XMLscene.prototype.update = function (currTime) {
 
 	if(this.timerLastUpdate == 0){
@@ -797,6 +794,6 @@ XMLscene.prototype.update = function (currTime) {
 		this.timerLastUpdate = this.currTimer;
 		this.currTimer = currTime;
 }
-
+		this.Board.delta = this.currTimer - this.timerLastUpdate;
 
 }

@@ -8,10 +8,15 @@ function Board(scene) {
 
     this.scene = scene;
 	
+	this.Player1Name = "Player 1";
+	this.Player2Name = "Player 2";
+	
 	//o maia é burro depois é perciso mudar
 	
-	this.head_texture = new CGFtexture(this.scene, "textures/head.jpg");
-	this.fire = new CGFtexture(this.scene, "textures/fire.jpg");
+	//texturas dos quadrados
+	this.choice = new CGFtexture(this.scene, "textures/choice.png");
+	this.selection = new CGFtexture(this.scene, "textures/selection.png");
+ 	this.selected = new CGFtexture(this.scene, "textures/selected.png");
 	
 	this.matrix;
 	this.letter = new emptySpace(this.scene);
@@ -22,15 +27,19 @@ function Board(scene) {
 	this.currentIDFromList = -1;
 	
 	this.prevMatrixs = [];
-	this.inAnimation = false;
+	this.prevCosts = [];
+	this.prevPlayer = [];
+	this.gameOver = false;
 	this.currentAnimation;
+	
+	//ListPieces
+	
+	this.listPieces = [];
+	this.deletedPieces = [];
 	
 	//selection
 	this.selectedID = -1;
 	this.listSelected = [];
-	this.atackingPiece = new MyPlant(scene);
-	//this.defendingPiece = new defendingPiece();
-	//this.motherShip = new motherShip();
 }
 
 Board.prototype = Object.create(CGFobject.prototype);
@@ -45,9 +54,72 @@ Board.prototype.defineSelection = function(ID,list) {
 
 Board.prototype.resetSelection = function() {
 
+	if(!this.gameOver)
+		this.scene.state = "IDLE";
 	this.selectedID = -1;
 	this.listSelected = [];
 	this.currentIDFromList = -1;
+
+}
+
+Board.prototype.findDiferenceMatrix = function(matrix,newMatrix) {
+
+	var initRow,initCol,finalRow,finalCol;
+
+	for (var row = 0; row < this.nRow; ++row) {
+			for (var col = 0; col < this.nCol; ++col) {
+			
+			if(matrix[row][col] != 0 && newMatrix[row][col] == 0){
+			
+				initCol = col;
+				initRow = row;
+				
+				}
+			else if(matrix[row][col] == 0 && newMatrix[row][col] != 0)
+				{
+				finalCol = col;
+				finalRow = row;
+			
+			}else if(matrix[row][col] != newMatrix[row][col])
+			{
+				finalCol = col;
+				finalRow = row;
+			}
+		}
+	}
+		return new Array(initRow,initCol,finalRow,finalCol);
+
+}
+
+Board.prototype.findDiferenceMatrixUndo = function(matrix,newMatrix) {
+	var initRow,initCol,finalRow,finalCol;
+
+	for (var row = 0; row < this.nRow; ++row) {
+			for (var col = 0; col < this.nCol; ++col) {
+			if(matrix[row][col] != 0 && newMatrix[row][col] == 0){
+			
+				initCol = col;
+				initRow = row;
+				
+				}
+			else if((matrix[row][col] != newMatrix[row][col]) && matrix[row][col] != 0 && newMatrix[row][col] != 0)
+			{
+				initCol = col;
+				initRow = row;
+			}
+			else if(matrix[row][col] == 0 && newMatrix[row][col] != 0)
+				{
+				finalCol = col;
+				finalRow = row;
+			
+			}else if(matrix[row][col] != newMatrix[row][col])
+			{
+				finalCol = col;
+				finalRow = row;
+			}
+		}
+	}
+		return new Array(initRow,initCol,finalRow,finalCol);
 
 }
 
@@ -64,24 +136,133 @@ Board.prototype.init = function(matrix) {
 for (var row = 0; row < this.nRow; ++row) {
         for (var col = 0; col < this.nCol; ++col) {
 			this.scene.board[i] = new emptySpace(this.scene);
+			
+			//create piecesLocation
+			
+				switch(this.matrix[row][col]){
+				case 1:
+					this.listPieces.push(new Piece(this.scene,1,row,col));
+					//define other stuff
+				break;
+				case 2:
+					this.listPieces.push(new Piece(this.scene,2,row,col));
+					//define other stuff
+				break;
+				case 5:
+					this.listPieces.push(new Piece(this.scene,5,row,col));
+					//define other stuff
+				break;
+			}
 			this.scene.registerForPick(i+1,this.scene.board[i]);
 			i++;
 		}
 	}
+}
+
+Board.prototype.findPiece = function(row,col,flag) {
+
+	for(id in this.listPieces)
+		{
+			if(this.listPieces[id].x == row && this.listPieces[id].y == col)
+				if(flag)
+					{
+						if(this.listPieces[id].inBoard)
+							return this.listPieces[id];
+					}
+				else return this.listPieces[id];
+		}
+	return null;
+
+}
+
+Board.prototype.UNDO = function() {
+
+	if(this.prevMatrixs.length != 0)
+		{
+			
+			var movement = this.findDiferenceMatrixUndo(this.matrix,this.prevMatrixs[0]);
+			
+			console.log(this.matrix);
+			console.log(this.prevMatrixs[0]);
+			
+			console.log(movement);
+			
+			var	initRow = movement[0];
+			var initCol = movement[1];
+			
+			var pieceToMove = this.findPiece(initRow,initCol,false);
+			
+			if(pieceToMove.inBoard == false)
+				{
+					 var pieceToMove2 = this.findPiece(initRow,initCol,true);
+					 pieceToMove.inBoard = true;
+					 pieceToMove2.setCoord(movement[2],movement[3]);
+				}
+			else {
+				 pieceToMove.setCoord(movement[2],movement[3]);
+				 pieceToMove = this.findPiece(initRow,initCol,false);
+				 if(pieceToMove != null)
+					pieceToMove.inBoard = true;
+			}
+		
+			this.scene.state = "ANIMATION";
+			//TODO reverse Animation
+			this.matrix = this.prevMatrixs[0];
+			this.currentPlayer = this.prevPlayer[0];
+			this.currentCostLeft = this.prevCosts[0];
+			var self = this.scene;
+			this.scene.getPlays(this,function(listPlays) {
+					self.Board.parsingPlays(listPlays);
+					self.state = "IDLE";
+			});
+			this.prevMatrixs.shift();
+			this.prevPlayer.shift();
+			this.prevCosts.shift();
+			this.resetSelection();
+			if(this.gameOver)
+				this.gameOver = false;
+			this.scene.state = "IDLE";
+		}
+}
+
+Board.prototype.makeAnimation = function(movement) {
+
+	var initRow = movement[0];
+	var initCol = movement[1];
+	var finalRow = movement[2];
+	var finalCol = movement[3];
 	
+	var pieceThatMoves = this.findPiece(initRow,initCol,true);
+	
+	var destSpace = this.findPiece(finalRow,finalCol,false);
+	
+	pieceThatMoves.defineAnimation(finalRow,finalCol);
+	
+	if(destSpace != null)
+		destSpace.inBoard = false;
+		
+	this.deletedPieces.push(destSpace);
+	
+
 }
 
 Board.prototype.newMatrix = function(newMatrix) {
 
+	var movement = this.findDiferenceMatrix(this.matrix,newMatrix);
+	
+	this.scene.state = "ANIMATION";
+	this.makeAnimation(movement);
 
-	//TODO make animation
-
-	this.prevMatrixs.push(this.matrix);
+	this.prevMatrixs.unshift(this.matrix);
 	this.matrix = newMatrix;
+	
 }
 
 Board.prototype.updateCostLeft = function(NewCostLeft) {
 
+
+this.prevPlayer.unshift(this.currentPlayer);
+this.prevCosts.unshift(this.currentCostLeft);
 this.currentCostLeft = NewCostLeft;
 
 }
@@ -94,7 +275,6 @@ Board.prototype.updateBoard = function() {
 		else this.currentPlayer = 0;
 		this.currentCostLeft = 2;
 	}
-	this.resetSelection();
 }
 
 Board.prototype.parsingPlays = function(playList) {
@@ -232,8 +412,6 @@ Board.prototype.displaySetence = function(string){
 
 var translateRight = string.length/2;
 
-console.log("Translate Right = " + translateRight);
-
 this.scene.translate(-translateRight,0,0);
 
 for(var i = 0; i < string.length;i++)
@@ -263,10 +441,10 @@ Board.prototype.displayTurn = function() {
 	
 	this.scene.translate(0,0,-3);
 	
-	if(this.scene.state != "GAMEOVER"){
+	if(!this.gameOver){
 		if(this.currentPlayer == 0){
 			this.scene.pushMatrix();
-			this.displaySetence("PLAYER 1");
+			this.displaySetence(this.Player1Name.toUpperCase());
 			this.scene.popMatrix();
 			this.scene.translate(0,0,1.5);
 			this.scene.pushMatrix();
@@ -276,7 +454,7 @@ Board.prototype.displayTurn = function() {
 		}
 		else if(this.currentPlayer == 1){
 			this.scene.pushMatrix();
-			this.displaySetence("PLAYER 2");
+			this.displaySetence(this.Player2Name.toUpperCase());
 			this.scene.popMatrix();
 			this.scene.translate(0,0,1.5);
 			this.scene.pushMatrix();
@@ -287,7 +465,7 @@ Board.prototype.displayTurn = function() {
 	else {
 		if(this.currentPlayer == 0){
 			this.scene.pushMatrix();
-			this.displaySetence("PLAYER 1");
+			this.displaySetence(this.Player1Name.toUpperCase());
 			this.scene.popMatrix();
 			this.scene.translate(0,0,1.5);
 			this.scene.pushMatrix();
@@ -296,7 +474,7 @@ Board.prototype.displayTurn = function() {
 		}
 		else if(this.currentPlayer == 1){
 			this.scene.pushMatrix();
-			this.displaySetence("PLAYER 2");
+			this.displaySetence(this.Player2Name.toUpperCase());
 			this.scene.popMatrix();
 			this.scene.translate(0,0,1.5);
 			this.scene.pushMatrix();
@@ -328,28 +506,38 @@ Board.prototype.display = function() {
     for (var row = 0; row < this.nRow; ++row) {
         for (var col = 0; col < this.nCol; ++col) {
 			this.scene.registerForPick(i+1,this.scene.board[i]);
+			var flag = false;
+			
+			for(id in this.listSelected)
+				{
+					var index = this.listSelected[id];
+					var coord = this.destLocation[index];
+					var coordTemp = this.scene.pickToCoord(i);
+					if(coordTemp.toString() == coord.toString())
+						flag = true;
+				}
+			
 			if(this.selectedID == i) // TODO alterar esta merda toda
-			this.fire.bind();
-			else this.head_texture.bind();
+				this.selected.bind();
+			else if(this.selectedID != -1 && flag)
+				this.selection.bind();
+			else this.choice.bind();
 			this.scene.board[i].display();
 			this.scene.pushMatrix();
-			switch(this.matrix[row][col]){
 			
-			case 1:	this.scene.translate(0.5,0,0.5);			
-					this.atackingPiece.display();
-					break;
-			case 2: this.scene.translate(0.5,0,0.5);			
-					this.atackingPiece.display();
-					break;
-			case 5: this.scene.translate(0.5,0,0.5);			
-					this.atackingPiece.display();
-					break;
-			default:
-					break;
-			}
-			if(this.selectedID == i)// TODO alterar esta merda toda
-				this.fire.unbind();
-			else this.head_texture.unbind();
+			
+			this.scene.translate(0.5,0,0.5);
+			var tempPiece = this.findPiece(row,col,true);
+			
+			if(tempPiece != null)
+					tempPiece.display();
+				
+			
+			if(this.selectedID == i) // TODO alterar esta merda toda
+				this.selected.unbind();
+			else if(this.selectedID != -1 && flag)
+				this.selection.unbind();
+			else this.choice.unbind();
 			this.scene.popMatrix();
             this.scene.translate(1.1,0,0); // adicionar largura do emptyspace
 			i++;

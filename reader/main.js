@@ -15,7 +15,7 @@ serialInclude(['../lib/CGF.js', 'XMLscene.js', 'MySceneGraph.js', 'MyLight.js', 
 'MyRectangle.js', 'MyTriangle.js','MySphere.js', 'MyCylinder.js', 'MyInterface.js',
 'MyAnimation.js','MyLinearAnimation​.js','MyCircularAnimation.js','Plane.js',
 'MyPatch.js', 'MyVehicle.js','Terrain.js', 'serverRequests.js', 'Board.js', 'emptySpace.js',
-'MySemiSphere.js','MyPlant.js','Letter.js',
+'MySemiSphere.js','MyPlant.js','Letter.js','MyDentadura.js','MyHead.js','Piece.js','MyCoroa.js','MyRotation.js',
 
 main=function() 
 {

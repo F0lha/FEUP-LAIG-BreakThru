@@ -11,7 +11,7 @@ function MyAnimation(scene, span) {
 MyAnimation.prototype.constructor = MyAnimation;
 
 MyAnimation.prototype.getFinished = function() {
-return this.finished;
+	return this.finished;
 }
 
 MyAnimation.prototype.reset = function() {
