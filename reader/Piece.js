@@ -13,6 +13,12 @@ function Piece(scene,player,row,col) {
 	
 	this.movingAnimation = null;
 	this.rotationAnimation = null;
+	this.deathAnimationPart1 = null; // levitar
+	this.translation1 = null;
+	this.deathAnimationPart2 = null;
+	this.translation2 = null;
+	this.deathAnimationPart3 = null; // baixar
+	this.translation3 = null;
 	
 	switch(player){
 	
@@ -56,8 +62,6 @@ Piece.prototype.defineAnimation = function(finalRow,finalCol){
 			diffRot = this.angle - newAngle;
 		else diffRot = newAngle - this.angle;
 		
-		console.log(diffRot);
-		
 		this.rotationAnimation = new MyRotation(this.scene, 1, diffRot);
 		this.rotationAnimation.currentRot = this.angle;
 		this.angle = newAngle;
@@ -89,8 +93,6 @@ Piece.prototype.display = function(){
 	}
 	else if(this.movingAnimation != null) // smooth
 	{
-		
-		console.log(this.player);
 	
 		if(this.scene.Board.delta < 100)// smooth
 			var Matrix = this.movingAnimation.getMatrix(this.scene.Board.delta);
@@ -103,6 +105,56 @@ Piece.prototype.display = function(){
 			this.movingAnimation = null;
 			this.scene.Board.resetSelection();
 			}
+	}
+	else if(this.deathAnimationPart1 != null){
+	this.scene.state = "ANIMATION";
+		if(this.scene.Board.delta < 100)// smooth
+			var Matrix = this.deathAnimationPart1.getMatrix(this.scene.Board.delta);
+		else var Matrix = this.deathAnimationPart1.getMatrix(50);
+		
+		mat4.multiply(tempMatrix, tempMatrix, Matrix);
+		
+		if(this.deathAnimationPart1.finished == true){
+			this.deathAnimationPart1 = null;
+			}
+	}
+	else if(this.deathAnimationPart2 != null){
+	this.scene.state = "ANIMATION";
+		if(this.scene.Board.delta < 100)// smooth
+			var Matrix = this.deathAnimationPart2.getMatrix(this.scene.Board.delta);
+		else var Matrix = this.deathAnimationPart2.getMatrix(50);
+		
+		mat4.translate(tempMatrix, tempMatrix, this.translation1);
+		
+		mat4.multiply(tempMatrix, tempMatrix, Matrix);
+		
+		if(this.deathAnimationPart2.finished == true){
+			this.deathAnimationPart2 = null;
+			}
+	}
+	else if(this.deathAnimationPart3 != null){
+	this.scene.state = "ANIMATION";
+		if(this.scene.Board.delta < 100)// smooth
+			var Matrix = this.deathAnimationPart3.getMatrix(this.scene.Board.delta);
+		else var Matrix = this.deathAnimationPart3.getMatrix(50);
+		
+		mat4.translate(tempMatrix, tempMatrix, this.translation2);
+		
+		mat4.multiply(tempMatrix, tempMatrix, Matrix);
+		
+		if(this.deathAnimationPart3.finished == true){
+			this.deathAnimationPart3 = null;
+			this.inBoard = false;
+			this.scene.state = "IDLE";
+			}
+	}
+	else if(this.inBoard == false)
+	{
+		//bugged, but working
+		var newVec = vec3.create();
+		vec3.sub(newVec,this.translation2,this.translation1);
+		
+		mat4.translate(tempMatrix, tempMatrix, newVec);
 	}
 	else 
 	{ // mantain rotation

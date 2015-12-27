@@ -206,7 +206,6 @@ if(this.scene.state == "IDLE")
 		{
 			
 			var movement = this.findDiferenceMatrixUndo(this.matrix,this.prevMatrixs[0]);
-			console.log(movement);
 			
 			var	initRow = movement[0];
 			var initCol = movement[1];
@@ -244,8 +243,41 @@ if(this.scene.state == "IDLE")
 		}
 }
 
-Board.prototype.defineDefeateAnimation = function(piece) {
+Board.prototype.howManyDefeated = function(player) {
+var number = 0;
 
+for(id in this.deletedPieces)
+	if(this.deletedPieces[id].player == player)
+		number++;
+return number;
+}
+
+Board.prototype.defineDefeatAnimation = function(piece) {
+	var variationToCorner;
+	if(piece.player == 2)
+		variationToCorner = vec3.fromValues((-piece.y*1.1-0.5)-5.8,0,(-piece.x*1.1-1.5)+5.7);
+	else if(piece.player == 1) variationToCorner = vec3.fromValues((-piece.y*1.1-0.5)+1.1*this.nCol+3.2,0,(-piece.x*1.1-1.5)+5.7);
+	//ta bugado, nao sei desbugar fds, que cancro fodido TODO	
+	
+	var number = this.howManyDefeated(piece.player);
+
+	var variationOnBox = vec3.fromValues((Math.floor(number/4))*1.1,0,(number % 4)*1.1);
+
+	piece.deathAnimationPart1 = new MyLinearAnimation(this.scene, 1, [vec3.fromValues(0,0,0),vec3.fromValues(0,5,0)],360); // levitação
+
+	piece.translation1 = vec3.fromValues(0,5,0);
+
+	piece.deathAnimationPart3 = new MyLinearAnimation(this.scene, 1, [vec3.fromValues(0,0,0),vec3.fromValues(0,-5,0)],360); // levitação
+
+	var translation2Vec = vec3.create();
+	vec3.add(translation2Vec,variationOnBox,variationToCorner);
+
+	piece.translation2 = vec3.create();
+
+	vec3.add(piece.translation2,piece.translation1,translation2Vec); // second translation
+
+	piece.deathAnimationPart2 = new MyLinearAnimation(this.scene, 3, [vec3.fromValues(0,0,0),translation2Vec]);
+	//calcular a animacao de guardar
 
 }
 
@@ -256,8 +288,6 @@ Board.prototype.makeAnimation = function(movement,undo) {
 	var finalRow = movement[2];
 	var finalCol = movement[3];
 	
-	console.log(movement);
-	
 	var pieceThatMoves = this.findPiece(initRow,initCol,true);
 	
 	var destSpace = this.findPiece(finalRow,finalCol,true);
@@ -266,10 +296,10 @@ Board.prototype.makeAnimation = function(movement,undo) {
 	
 	if(!undo)
 		if(destSpace != null){
-			destSpace.inBoard = false;
+			//destSpace.inBoard = false;
 			this.deletedPieces.push(destSpace);
 			
-			this.defineDefeateAnimation(destSpace);
+			this.defineDefeatAnimation(destSpace);
 			
 			//updatePoints
 			
@@ -495,7 +525,7 @@ Board.prototype.displayPlayer1Points = function() {
 	this.scene.translate(0,0,1.5);
 	
 	this.scene.pushMatrix();
-	this.displaySetence("POINTS: "+ this.player1Points);
+	this.displaySetence("POINTS:"+ this.player1Points);
 	this.scene.popMatrix();
 	
 	this.scene.popMatrix();
@@ -522,7 +552,7 @@ Board.prototype.displayPlayer2Points = function() {
 	this.scene.translate(0,0,1.5);
 	
 	this.scene.pushMatrix();
-	this.displaySetence("POINTS: "+ this.player2Points);
+	this.displaySetence("POINTS:"+ this.player2Points);
 	this.scene.popMatrix();
 	
 	this.scene.popMatrix();
@@ -672,7 +702,7 @@ Board.prototype.display = function() {
 			for(id in this.listPieces)
 			{
 				if(this.listPieces[id].x == row && this.listPieces[id].y == col)
-					if(this.listPieces[id].inBoard)
+					//if(this.listPieces[id].inBoard)
 						this.listPieces[id].display();
 			}
 				

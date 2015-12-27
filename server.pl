@@ -112,7 +112,7 @@ parse_input(quit, goodbye).
 %% New Functions
 
 parse_input(continue(Board),0):-continueGame(Board).
-parse_input(continue(Board),1).
+parse_input(continue(_),1).
 
 parse_input(playBest(Board,Player,CostLeft),[NewBoard,CostToSpend]):-getBestMove(Board,Player,X,Y,XF,YF,CostLeft,CostToSpend),movePiece(Board,X,Y,XF,YF,NewBoard).
 
