@@ -18,7 +18,10 @@ function Piece(scene,player,row,col) {
 	this.deathAnimationPart2 = null;
 	this.translation2 = null;
 	this.deathAnimationPart3 = null; // baixar
-	this.translation3 = null;
+	
+	this.undoDeleteAnimation1 = null;
+	this.undoDeleteAnimation2 = null;
+	this.undoDeleteAnimation3 = null;
 	
 	switch(player){
 	
@@ -150,11 +153,58 @@ Piece.prototype.display = function(){
 	}
 	else if(this.inBoard == false)
 	{
-		//bugged, but working
 		var newVec = vec3.create();
 		vec3.sub(newVec,this.translation2,this.translation1);
 		
 		mat4.translate(tempMatrix, tempMatrix, newVec);
+	}
+	else if(this.undoDeleteAnimation1 != null){
+	this.scene.state = "ANIMATION";
+		if(this.scene.Board.delta < 100)// smooth
+			var Matrix = this.undoDeleteAnimation1.getMatrix(this.scene.Board.delta);
+		else var Matrix = this.undoDeleteAnimation1.getMatrix(50);
+		
+		var newVec = vec3.create();
+		vec3.sub(newVec,this.translation2,this.translation1);
+		
+		mat4.translate(tempMatrix, tempMatrix, newVec);
+		
+		mat4.multiply(tempMatrix, tempMatrix, Matrix);
+		
+		if(this.undoDeleteAnimation1.finished == true){
+			this.undoDeleteAnimation1 = null;
+			//this.scene.state = "IDLE";
+			}
+	}
+	else if(this.undoDeleteAnimation2 != null){
+	this.scene.state = "ANIMATION";
+		if(this.scene.Board.delta < 100)// smooth
+			var Matrix = this.undoDeleteAnimation2.getMatrix(this.scene.Board.delta);
+		else var Matrix = this.undoDeleteAnimation2.getMatrix(50);
+		
+		mat4.translate(tempMatrix, tempMatrix, this.translation2);
+		
+		mat4.multiply(tempMatrix, tempMatrix, Matrix);
+		
+		if(this.undoDeleteAnimation2.finished == true){
+			this.undoDeleteAnimation2 = null;
+			//this.scene.state = "IDLE";
+			}
+	}
+	else if(this.undoDeleteAnimation3 != null){
+	this.scene.state = "ANIMATION";
+		if(this.scene.Board.delta < 100)// smooth
+			var Matrix = this.undoDeleteAnimation3.getMatrix(this.scene.Board.delta);
+		else var Matrix = this.undoDeleteAnimation3.getMatrix(50);
+		
+		mat4.translate(tempMatrix, tempMatrix, this.translation1);
+		
+		mat4.multiply(tempMatrix, tempMatrix, Matrix);
+		
+		if(this.undoDeleteAnimation3.finished == true){
+			this.undoDeleteAnimation3 = null;
+			this.scene.state = "IDLE";
+			}
 	}
 	else 
 	{ // mantain rotation

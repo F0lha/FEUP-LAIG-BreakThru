@@ -30,14 +30,14 @@
 	 		//box1
 	 		this.cubo_texture.bind();
 			this.scene.pushMatrix();
-				this.scene.translate(0.1, 0.5, 2.2);
-	 			this.scene.scale(0.2, 1, 4.4); 			
+				this.scene.translate(0.1, 0.5, 2.3);
+	 			this.scene.scale(0.2, 1, 4.6); 			
 				this.cubo.display();
 			this.scene.popMatrix();
 
 			this.scene.pushMatrix();
-				this.scene.translate(5.8, 0.5, 2.2);
-	 			this.scene.scale(0.2, 1, 4.4);
+				this.scene.translate(5.8, 0.5, 2.3);
+	 			this.scene.scale(0.2, 1, 4.6);
 				this.cubo.display();
 			this.scene.popMatrix();
 
@@ -48,7 +48,7 @@
 			this.scene.popMatrix();
 
 			this.scene.pushMatrix();
-				this.scene.translate(2.95, 0.5, 4.3);
+				this.scene.translate(2.95, 0.5, 4.5);
 	 			this.scene.scale(5.5, 1, 0.2);
 				this.cubo.display();
 			this.scene.popMatrix();
@@ -57,7 +57,7 @@
 			this.scene.pushMatrix();
 				this.scene.translate(2.95, 0, 2.2);
 				this.scene.rotate(-Math.PI/2, 1, 0, 0);
-	 			this.scene.scale(5.5, 4.3, 1);
+	 			this.scene.scale(5.5, 4.5, 1);
 	 			this.cubo1_texture.bind();
 				this.quad.display();
 				this.cubo1_texture.unbind();
@@ -68,14 +68,14 @@
 			//box2
 			this.cubo_texture.bind();
 			this.scene.pushMatrix();
-				this.scene.translate(0.1, 0.5, 2.2);
-	 			this.scene.scale(0.2, 1, 4.4); 			
+				this.scene.translate(0.1, 0.5, 2.3);
+	 			this.scene.scale(0.2, 1, 4.6); 			
 				this.cubo.display();
 			this.scene.popMatrix();
 
 			this.scene.pushMatrix();
-				this.scene.translate(3.3, 0.5, 2.2);
-	 			this.scene.scale(0.2, 1, 4.4);
+				this.scene.translate(3.3, 0.5, 2.3);
+	 			this.scene.scale(0.2, 1, 4.6);
 				this.cubo.display();
 			this.scene.popMatrix();
 
@@ -86,7 +86,7 @@
 			this.scene.popMatrix();
 
 			this.scene.pushMatrix();
-				this.scene.translate(1.6, 0.5, 4.3);
+				this.scene.translate(1.6, 0.5, 4.5);
 	 			this.scene.scale(3.2, 1, 0.2);
 				this.cubo.display();
 			this.scene.popMatrix();
@@ -95,7 +95,7 @@
 			this.scene.pushMatrix();
 				this.scene.translate(1.6, 0, 2.2);
 				this.scene.rotate(-Math.PI/2, 1, 0, 0);
-	 			this.scene.scale(3.2, 4.3, 1);
+	 			this.scene.scale(3.2, 4.4, 1);
 	 			this.cubo1_texture.bind();
 				this.quad.display();
 				this.cubo1_texture.unbind();
@@ -109,3 +109,4 @@
 
 	this.scene.popMatrix(); 		
  };
+

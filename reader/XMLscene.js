@@ -12,8 +12,7 @@ function XMLscene() {
 	this.Player1Difficulty = "Human";
 	this.Player2Difficulty = "Human";
 	
-	this.player1Dificulty = ["Human", "Easy", "Hard"];
-	this.player2Dificulty = ["Human", "Easy", "Hard"];
+	this.playerDificulty = ["Human", "Easy", "Hard"];
 
 	this.flag = true;
 	this.state = "PROCESSING";

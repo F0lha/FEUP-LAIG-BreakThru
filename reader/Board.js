@@ -24,6 +24,7 @@ function Board(scene) {
 	
 	//play
 	this.currentPlayer = 0;
+	this.time_left = 30;
 	this.currentCostLeft = 2;
 	this.currentIDFromList = -1;
 	
@@ -60,8 +61,7 @@ Board.prototype.defineSelection = function(ID,list) {
 
 Board.prototype.resetSelection = function() {
 
-	if(!this.gameOver)
-		this.scene.state = "IDLE";
+	this.scene.state = "IDLE";
 	this.selectedID = -1;
 	this.listSelected = [];
 	this.currentIDFromList = -1;
@@ -201,7 +201,8 @@ for (var row = 0; row < this.nRow; ++row) {
 }
 
 Board.prototype.UNDO = function() {
-if(this.scene.state == "IDLE")
+console.log(this.scene.state);
+if(this.scene.state != "ANIMATION" && this.scene.state != "PROCESSING")
 	if(this.prevMatrixs.length != 0)
 		{
 			
@@ -212,13 +213,38 @@ if(this.scene.state == "IDLE")
 			
 			var pieceToMove = this.findPiece(initRow,initCol,true);
 			
+			this.time_left = 30;
 			
 			this.makeAnimation(movement,true);
 			
 			var deletedPiece;
 			if(this.eatenPiece(this.matrix,this.prevMatrixs[0])){
 				deletedPiece = this.deletedPieces.pop();
+				
+				//make delete animation
 				deletedPiece.inBoard = true;
+				
+				//
+				
+					var variationToCorner;
+					if(deletedPiece.player == 2)
+						variationToCorner = vec3.fromValues(((deletedPiece.y-1)*1.1+0.5)+5.8,0,((deletedPiece.x-1)*1.1+1.5)-6.7);
+					else if(deletedPiece.player == 1) variationToCorner = vec3.fromValues(((deletedPiece.y-1)*1.1+0.5)-1.1*this.nCol-3.2,0,((deletedPiece.x-1)*1.1+1.5)-6.7);
+					//ta bugado, nao sei desbugar fds, que cancro fodido TODO	
+					
+					var number = this.howManyDefeated(deletedPiece.player)-1;
+
+					var variationOnBox = vec3.fromValues(-(Math.floor(number/4))*1.1,0,-(number % 4)*1.1);
+					
+					var translation2Vec = vec3.create();
+					vec3.add(translation2Vec,variationOnBox,variationToCorner);
+				
+				//
+				
+				deletedPiece.undoDeleteAnimation1 = new MyLinearAnimation(this.scene, 1, [vec3.fromValues(0,0,0),vec3.fromValues(0,5,0)],360); // levitação
+				deletedPiece.undoDeleteAnimation2 = new MyLinearAnimation(this.scene, 3, [vec3.fromValues(0,0,0),translation2Vec]);;
+				deletedPiece.undoDeleteAnimation3 = new MyLinearAnimation(this.scene, 1, [vec3.fromValues(0,0,0),vec3.fromValues(0,-5,0)],360);
+				
 				if(this.currentPlayer == 0)
 					this.player2Points -=2;
 				else this.player1Points -=2;
@@ -255,11 +281,11 @@ return number;
 Board.prototype.defineDefeatAnimation = function(piece) {
 	var variationToCorner;
 	if(piece.player == 2)
-		variationToCorner = vec3.fromValues((-piece.y*1.1-0.5)-5.8,0,(-piece.x*1.1-1.5)+5.7);
-	else if(piece.player == 1) variationToCorner = vec3.fromValues((-piece.y*1.1-0.5)+1.1*this.nCol+3.2,0,(-piece.x*1.1-1.5)+5.7);
+		variationToCorner = vec3.fromValues((-piece.y*1.1-0.5)-5.8,0,(-piece.x*1.1-1.5)+6.7);
+	else if(piece.player == 1) variationToCorner = vec3.fromValues((-piece.y*1.1-0.5)+1.1*this.nCol+3.2,0,(-piece.x*1.1-1.5)+6.7);
 	//ta bugado, nao sei desbugar fds, que cancro fodido TODO	
 	
-	var number = this.howManyDefeated(piece.player);
+	var number = this.howManyDefeated(piece.player)-1;
 
 	var variationOnBox = vec3.fromValues((Math.floor(number/4))*1.1,0,(number % 4)*1.1);
 
@@ -327,6 +353,8 @@ Board.prototype.newMatrix = function(newMatrix) {
 
 	var movement = this.findDiferenceMatrix(this.matrix,newMatrix);
 	
+	this.time_left = 30;
+	
 	this.scene.state = "ANIMATION";
 	this.makeAnimation(movement,false);
 
@@ -351,6 +379,8 @@ Board.prototype.updateBoard = function() {
 			this.currentPlayer = 1;
 		else this.currentPlayer = 0;
 		this.currentCostLeft = 2;
+		
+		this.time_left = 30;
 	}
 }
 
@@ -501,6 +531,7 @@ for(var i = 0; i < string.length;i++)
 	var coord = this.getCoordArray(letter);
 	
 	this.scene.activeShader.setUniformsValues({'charCoords': coord});
+	this.scene.activeShader.setUniformsValues({'color': vec4.fromValues(1.0,0.0,0.0,1)});
 	this.letter.display();
 	this.scene.translate(1,0,0);
 }
@@ -586,7 +617,7 @@ Board.prototype.displayTurn = function() {
 			this.scene.popMatrix();
 			this.scene.translate(0,0,1.5);
 			this.scene.pushMatrix();
-			this.displaySetence("TURN");
+			this.displaySetence("TURN + " + Math.round(this.time_left));
 			this.scene.popMatrix();
 
 		}
@@ -596,7 +627,7 @@ Board.prototype.displayTurn = function() {
 			this.scene.popMatrix();
 			this.scene.translate(0,0,1.5);
 			this.scene.pushMatrix();
-			this.displaySetence("TURN");
+			this.displaySetence("TURN + " + Math.round(this.time_left));
 			this.scene.popMatrix();
 		}
 	}
@@ -657,6 +688,8 @@ Board.prototype.displayBoxes = function() {
 }
 
 Board.prototype.display = function() {
+
+	this.updateCronometer();
 
 	this.scene.setActiveShader(this.scene.textShader);
 	
@@ -720,4 +753,16 @@ Board.prototype.display = function() {
     }
 
     this.scene.popMatrix();
+}
+ 
+ Board.prototype.updateCronometer = function() {
+ 	if(this.time_left <= 0 && !this.gameOver)
+		{
+			
+			this.scene.makeEasyPlay(this.scene,this.scene.putBoardAndGetPlays);
+			this.time_left = 30;
+		}
+	
+	this.time_left -= this.delta/1000;
+
 }
