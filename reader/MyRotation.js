@@ -14,12 +14,11 @@ MyRotation.prototype = Object.create(MyAnimation.prototype);
 MyRotation.prototype.constructor = MyRotation;
 
 MyRotation.prototype.getMatrix = function(delta) {
-	
 	this.absDiffRot -= Math.abs(delta*this.velocity);
 	
 	if(this.absDiffRot <= 0)
 		this.finished = true;
-	else this.currentRot += delta*this.velocity;
+	else this.currentRot -= delta*this.velocity;
 
 	var tempMatrix = mat4.create();
 	

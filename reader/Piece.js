@@ -53,8 +53,8 @@ Piece.prototype.defineAnimation = function(finalRow,finalCol){
 	{
 		var diffRot;
 		if((this.angle - newAngle) <= Math.PI)
-			diffRot = newAngle - this.angle;
-		else diffRot = this.angle - newAngle;
+			diffRot = this.angle - newAngle;
+		else diffRot = newAngle - this.angle;
 		
 		console.log(diffRot);
 		
@@ -62,12 +62,11 @@ Piece.prototype.defineAnimation = function(finalRow,finalCol){
 		this.rotationAnimation.currentRot = this.angle;
 		this.angle = newAngle;
 	}
-
-	this.movingAnimation = new MyLinearAnimation(this.scene, Math.abs((finalCol-this.y)+(finalRow-this.x)), [vec3.fromValues(0,0,0),controlPoint]);
+	this.movingAnimation = new MyLinearAnimation(this.scene, Math.abs(Math.abs(finalCol-this.y)+Math.abs(finalRow-this.x)), [vec3.fromValues(0,0,0),controlPoint]);
 }
 
 Piece.prototype.display = function(){
-
+	this.scene.pushMatrix();
 	var tempMatrix = mat4.create();
 	
 	mat4.identity(tempMatrix);
@@ -90,6 +89,9 @@ Piece.prototype.display = function(){
 	}
 	else if(this.movingAnimation != null) // smooth
 	{
+		
+		console.log(this.player);
+	
 		if(this.scene.Board.delta < 100)// smooth
 			var Matrix = this.movingAnimation.getMatrix(this.scene.Board.delta);
 		else var Matrix = this.movingAnimation.getMatrix(50);
@@ -109,6 +111,7 @@ Piece.prototype.display = function(){
 	
 	this.scene.multMatrix(tempMatrix);
 	this.primitive.display();
+	this.scene.popMatrix();
 }
 
 Piece.prototype.setCoord = function(x,y){

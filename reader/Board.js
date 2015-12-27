@@ -2,7 +2,6 @@
  * Board
  * @constructor
  */
-
 function Board(scene) {
 	CGFobject.call(this,scene);	
 
@@ -11,15 +10,17 @@ function Board(scene) {
 	this.Player1Name = "Player 1";
 	this.Player2Name = "Player 2";
 	
-	//o maia é burro depois é perciso mudar
-	
 	//texturas dos quadrados
-	this.choice = new CGFtexture(this.scene, "textures/choice.png");
-	this.selection = new CGFtexture(this.scene, "textures/selection.png");
- 	this.selected = new CGFtexture(this.scene, "textures/selected.png");
+	this.choice = new CGFtexture(this.scene, "textures/selected.png");
+	this.selection = new CGFtexture(this.scene, "textures/choice.png");
+ 	this.selected = new CGFtexture(this.scene, "textures/selection.png");
 	
 	this.matrix;
 	this.letter = new emptySpace(this.scene);
+	
+	//Box
+	this.player1Box = new MyBox(scene,0);
+	this.player2Box = new MyBox(scene,1);
 	
 	//play
 	this.currentPlayer = 0;
@@ -31,6 +32,11 @@ function Board(scene) {
 	this.prevPlayer = [];
 	this.gameOver = false;
 	this.currentAnimation;
+	
+	//Marcador
+	
+	this.player1Points = 0;
+	this.player2Points = 0;
 	
 	//ListPieces
 	
@@ -163,85 +169,126 @@ Board.prototype.findPiece = function(row,col,flag) {
 
 	for(id in this.listPieces)
 		{
-			if(this.listPieces[id].x == row && this.listPieces[id].y == col)
+			if(this.listPieces[id].x == row && this.listPieces[id].y == col){
 				if(flag)
 					{
 						if(this.listPieces[id].inBoard)
 							return this.listPieces[id];
 					}
 				else return this.listPieces[id];
+				}
 		}
 	return null;
 
 }
 
-Board.prototype.UNDO = function() {
+Board.prototype.eatenPiece = function(matrix,newMatrix) {
 
+var numberM = 0;
+var numberNewM = 0;
+
+for (var row = 0; row < this.nRow; ++row) {
+        for (var col = 0; col < this.nCol; ++col) {
+		
+		if(matrix[row][col] != 0)
+			numberM++;
+		if(newMatrix[row][col] != 0)
+			numberNewM++;
+		}
+	}
+	
+	return numberM != numberNewM;
+}
+
+Board.prototype.UNDO = function() {
+if(this.scene.state == "IDLE")
 	if(this.prevMatrixs.length != 0)
 		{
 			
 			var movement = this.findDiferenceMatrixUndo(this.matrix,this.prevMatrixs[0]);
-			
-			console.log(this.matrix);
-			console.log(this.prevMatrixs[0]);
-			
 			console.log(movement);
 			
 			var	initRow = movement[0];
 			var initCol = movement[1];
 			
-			var pieceToMove = this.findPiece(initRow,initCol,false);
+			var pieceToMove = this.findPiece(initRow,initCol,true);
 			
-			if(pieceToMove.inBoard == false)
-				{
-					 var pieceToMove2 = this.findPiece(initRow,initCol,true);
-					 pieceToMove.inBoard = true;
-					 pieceToMove2.setCoord(movement[2],movement[3]);
-				}
-			else {
-				 pieceToMove.setCoord(movement[2],movement[3]);
-				 pieceToMove = this.findPiece(initRow,initCol,false);
-				 if(pieceToMove != null)
-					pieceToMove.inBoard = true;
+			
+			this.makeAnimation(movement,true);
+			
+			var deletedPiece;
+			if(this.eatenPiece(this.matrix,this.prevMatrixs[0])){
+				deletedPiece = this.deletedPieces.pop();
+				deletedPiece.inBoard = true;
+				if(this.currentPlayer == 0)
+					this.player2Points -=2;
+				else this.player1Points -=2;
 			}
 		
-			this.scene.state = "ANIMATION";
-			//TODO reverse Animation
 			this.matrix = this.prevMatrixs[0];
 			this.currentPlayer = this.prevPlayer[0];
 			this.currentCostLeft = this.prevCosts[0];
 			var self = this.scene;
 			this.scene.getPlays(this,function(listPlays) {
 					self.Board.parsingPlays(listPlays);
-					self.state = "IDLE";
+					//self.state = "IDLE"; // para tirar quando fizer o undo
 			});
 			this.prevMatrixs.shift();
 			this.prevPlayer.shift();
 			this.prevCosts.shift();
 			this.resetSelection();
+			this.scene.state = "ANIMATION";
 			if(this.gameOver)
 				this.gameOver = false;
-			this.scene.state = "IDLE";
+			//this.scene.state = "IDLE";
 		}
 }
 
-Board.prototype.makeAnimation = function(movement) {
+Board.prototype.defineDefeateAnimation = function(piece) {
+
+
+}
+
+Board.prototype.makeAnimation = function(movement,undo) {
 
 	var initRow = movement[0];
 	var initCol = movement[1];
 	var finalRow = movement[2];
 	var finalCol = movement[3];
 	
+	console.log(movement);
+	
 	var pieceThatMoves = this.findPiece(initRow,initCol,true);
 	
-	var destSpace = this.findPiece(finalRow,finalCol,false);
+	var destSpace = this.findPiece(finalRow,finalCol,true);
 	
 	pieceThatMoves.defineAnimation(finalRow,finalCol);
 	
-	if(destSpace != null)
-		destSpace.inBoard = false;
-		
-	this.deletedPieces.push(destSpace);
+	if(!undo)
+		if(destSpace != null){
+			destSpace.inBoard = false;
+			this.deletedPieces.push(destSpace);
+			
+			this.defineDefeateAnimation(destSpace);
+			
+			//updatePoints
+			
+			switch(destSpace.player){
+				case 1: //atacante
+					if(this.currentPlayer == 0)
+						this.player1Points += 2;
+				break;
+				case 2: // defensor
+					if(this.currentPlayer == 1)
+						this.player2Points += 2;
+				break;
+				case 5: //mothership
+					if(this.currentPlayer == 1)
+						this.player2Points += 50;
+				break;
+			}
+			
+		}
 	
 
 }
@@ -251,7 +298,7 @@ Board.prototype.newMatrix = function(newMatrix) {
 	var movement = this.findDiferenceMatrix(this.matrix,newMatrix);
 	
 	this.scene.state = "ANIMATION";
-	this.makeAnimation(movement);
+	this.makeAnimation(movement,false);
 
 	this.prevMatrixs.unshift(this.matrix);
 	this.matrix = newMatrix;
@@ -402,7 +449,9 @@ Board.prototype.getCoordArray = function(Char){
 	case ' ':
 		return new Array(0,2);
 		break;
-	
+	case ':':
+		return new Array(10,3);
+		break;	
 	}
 
 
@@ -428,7 +477,66 @@ for(var i = 0; i < string.length;i++)
 
 }
 
+Board.prototype.displayPlayer1Points = function() {
+
+	this.scene.pushMatrix();
+	
+	var diff = -this.nRow*1.1/2 + 0.5;
+	
+	
+    this.scene.translate(0, 0, diff); // adicionar largura do emptyspace
+	
+	this.scene.translate(-10,0,0);
+	
+	this.scene.pushMatrix();
+	this.displaySetence(this.Player1Name.toUpperCase());
+	this.scene.popMatrix();
+	
+	this.scene.translate(0,0,1.5);
+	
+	this.scene.pushMatrix();
+	this.displaySetence("POINTS: "+ this.player1Points);
+	this.scene.popMatrix();
+	
+	this.scene.popMatrix();
+	
+	
+
+}
+
+Board.prototype.displayPlayer2Points = function() {
+
+	this.scene.pushMatrix();
+	
+	var diff = -this.nRow*1.1/2 + 0.5;
+	
+	
+    this.scene.translate(0, 0, diff); // adicionar largura do emptyspace
+	
+	this.scene.translate(12,0,0);
+	
+	this.scene.pushMatrix();
+	this.displaySetence(this.Player2Name.toUpperCase());
+	this.scene.popMatrix();
+	
+	this.scene.translate(0,0,1.5);
+	
+	this.scene.pushMatrix();
+	this.displaySetence("POINTS: "+ this.player2Points);
+	this.scene.popMatrix();
+	
+	this.scene.popMatrix();
+
+}
+
 Board.prototype.displayTurn = function() {
+
+	this.displayPlayer1Points();
+	
+	
+	this.displayPlayer2Points();
+	
+	// BOX
 
 	this.scene.pushMatrix();
 	
@@ -486,9 +594,41 @@ Board.prototype.displayTurn = function() {
 	this.scene.popMatrix();
 }
 
+Board.prototype.displayBoxes = function() {
+	this.scene.pushMatrix();
+	
+	var diff = -this.nRow*1.1/2 + 0.5;
+	
+	
+    this.scene.translate(0, 0, diff); // adicionar largura do emptyspace
+	
+	this.scene.translate(-12,0,5);
+	
+	this.player1Box.display();
+	
+	
+	this.scene.popMatrix();
+	
+	this.scene.pushMatrix();
+	
+	var diff = -this.nRow*1.1/2 + 0.5;
+	
+	
+    this.scene.translate(0, 0, diff); // adicionar largura do emptyspace
+	
+	this.scene.translate(9,0,5);
+	
+	this.player2Box.display();
+	
+	
+	this.scene.popMatrix();
+
+
+}
+
 Board.prototype.display = function() {
 
-	this.scene.setActiveShaderSimple(this.scene.textShader);
+	this.scene.setActiveShader(this.scene.textShader);
 	
 	this.scene.appearance.apply();
 	
@@ -496,7 +636,9 @@ Board.prototype.display = function() {
 	
 	this.scene.setDefaultAppearance();
 	
-	this.scene.setActiveShaderSimple(this.scene.defaultShader);
+	this.scene.setActiveShader(this.scene.defaultShader);
+	
+	this.displayBoxes();
 
     this.scene.pushMatrix();
     this.scene.translate(-this.nCol*1.1/2 + 0.5, 0.01, -this.nRow*1.1/2 + 0.5); // adicionar largura do emptyspace
@@ -517,7 +659,7 @@ Board.prototype.display = function() {
 						flag = true;
 				}
 			
-			if(this.selectedID == i) // TODO alterar esta merda toda
+			if(this.selectedID == i) 
 				this.selected.bind();
 			else if(this.selectedID != -1 && flag)
 				this.selection.bind();
@@ -526,23 +668,25 @@ Board.prototype.display = function() {
 			this.scene.pushMatrix();
 			
 			
-			this.scene.translate(0.5,0,0.5);
-			var tempPiece = this.findPiece(row,col,true);
-			
-			if(tempPiece != null)
-					tempPiece.display();
+			this.scene.translate(0.5,0,0.5);			
+			for(id in this.listPieces)
+			{
+				if(this.listPieces[id].x == row && this.listPieces[id].y == col)
+					if(this.listPieces[id].inBoard)
+						this.listPieces[id].display();
+			}
 				
 			
-			if(this.selectedID == i) // TODO alterar esta merda toda
+			if(this.selectedID == i)
 				this.selected.unbind();
 			else if(this.selectedID != -1 && flag)
 				this.selection.unbind();
 			else this.choice.unbind();
 			this.scene.popMatrix();
-            this.scene.translate(1.1,0,0); // adicionar largura do emptyspace
+            this.scene.translate(1.1,0,0);
 			i++;
         }
-        this.scene.translate(-this.nCol*1.1, 0, 1.1);// adicionar largura do emptyspace
+        this.scene.translate(-this.nCol*1.1, 0, 1.1);
     }
 
     this.scene.popMatrix();

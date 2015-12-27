@@ -323,7 +323,7 @@ XMLscene.prototype.continueGame = function (self,callback, callbackObj){
 /*
 *	Makes the Bot Hard Play in PROLOG server and returns the NewBoard
 */
-XMLscene.prototype.makeHardPlay = function (self,callback, callbackObj){
+	XMLscene.prototype.makeHardPlay = function (self,callback, callbackObj){
 
 	self.state = "PROCESSING"; // waiting for requests
 
@@ -371,7 +371,6 @@ XMLscene.prototype.makeEasyPlay = function (self,callback, callbackObj){
 /*
 *	Makes the play in PROLOG server and returns the NewBoard
 */
-
 XMLscene.prototype.makePlays = function (self,finalPick,callback, callbackObj){
 
 	var initC = this.pickToCoord(self.Board.selectedID);
@@ -427,7 +426,6 @@ XMLscene.prototype.initBoard = function (callback, callbackObj){
 /*
 *  Gets list of pieces based on picking
 */
-
 XMLscene.prototype.getListOfPicking = function (pick){
 
 				var coord = this.pickToCoord(pick);
@@ -657,7 +655,6 @@ XMLscene.prototype.display = function () {
 		
 		this.interF.updateInterface();
 		
-		console.log("Estado" + this.state);
 		if(!this.Board.gameOver &&  this.state != "ANIMATION"){
 			if(this.Board.currentPlayer == 0 && this.Player1Difficulty == "Human"){
 				this.setPickEnabled(true);

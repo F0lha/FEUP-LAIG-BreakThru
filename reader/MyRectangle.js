@@ -14,7 +14,7 @@
  	this.indices = [];
  	this.normals = [];
  	this.texCoords = [];
-	
+
  	this.initBuffers();
  };
 
