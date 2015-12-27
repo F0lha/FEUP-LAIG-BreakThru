@@ -83,6 +83,11 @@ MyInterface.prototype.onGraphLoaded = function(){
 	this.player2.add(this.scene, 'Player2Difficulty', this.scene.playerDificulty);
 	this.player2.add(this.scene.Board,"Player2Name");
 	
+	
+	
+	//Color of Text
+	this.gui.addColor(this.scene.Board, "Color");
+	
 	//restartButton
 	
 	this.gui.add(this.scene, "RESETBOARD");

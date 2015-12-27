@@ -22,6 +22,8 @@ function Board(scene) {
 	this.player1Box = new MyBox(scene,0);
 	this.player2Box = new MyBox(scene,1);
 	
+	this.Color = "#FF0000";
+	
 	//play
 	this.currentPlayer = 0;
 	this.time_left = 30;
@@ -517,24 +519,29 @@ Board.prototype.getCoordArray = function(Char){
 
 }
 
+function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
+function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
+function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
+function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
+
 Board.prototype.displaySetence = function(string){
 
-var translateRight = string.length/2;
+	var translateRight = string.length/2;
 
-this.scene.translate(-translateRight,0,0);
+	this.scene.translate(-translateRight,0,0);
 
-for(var i = 0; i < string.length;i++)
-{
-	var letter = string.charAt(i);
+	for(var i = 0; i < string.length;i++)
+	{
+		var letter = string.charAt(i);
 
-	
-	var coord = this.getCoordArray(letter);
-	
-	this.scene.activeShader.setUniformsValues({'charCoords': coord});
-	this.scene.activeShader.setUniformsValues({'color': vec4.fromValues(1.0,0.0,0.0,1)});
-	this.letter.display();
-	this.scene.translate(1,0,0);
-}
+		
+		var coord = this.getCoordArray(letter);
+		
+		this.scene.activeShader.setUniformsValues({'charCoords': coord});
+		this.scene.activeShader.setUniformsValues({'color': vec4.fromValues(hexToR(this.Color) / 255,hexToG(this.Color) / 255,hexToB(this.Color) / 255,1.0)});
+		this.letter.display();
+		this.scene.translate(1,0,0);
+	}
 
 }
 
