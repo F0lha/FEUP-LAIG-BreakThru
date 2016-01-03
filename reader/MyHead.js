@@ -23,7 +23,7 @@
 
  	//vehicle parts
  	this.head = new MySemiSphere(scene, 1, 50, 50); 	
- 	this.headbot = new MyCylinder(scene, -0, 1, 0, 50, 50);
+ 	this.headbot = new MyCylinder(scene, 0, 1, 0, 50, 50);
  	this.dentadura = new MyDentadura(scene, type);
  };
 

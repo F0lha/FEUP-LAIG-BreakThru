@@ -34,7 +34,6 @@ function Board(scene) {
 	this.prevCosts = [];
 	this.prevPlayer = [];
 	this.gameOver = false;
-	this.currentAnimation;
 	
 	//Marcador
 	
@@ -138,6 +137,7 @@ Board.prototype.init = function(matrix) {
 	this.piecesLocation = [];
 	this.destLocation = [];
 	this.costMove = [];
+	this.listPieces= [];
 	
 	var i = 0;
 
@@ -207,9 +207,17 @@ console.log(this.scene.state);
 if(this.scene.state != "ANIMATION" && this.scene.state != "PROCESSING")
 	if(this.prevMatrixs.length != 0)
 		{
+			var id = this.prevMatrixs.length - 1;
+			var newMatrix = this.popUntilIndex(id,this.prevMatrixs);
+			var newCost = this.popUntilIndex(id,this.prevCosts);
+			var newPlayer = this.popUntilIndex(id,this.prevPlayer);
+			console.log(id);
+			console.log(newMatrix);
+			console.log(newCost);
+			console.log(newPlayer);
 			
-			var movement = this.findDiferenceMatrixUndo(this.matrix,this.prevMatrixs[0]);
-			
+			var movement = this.findDiferenceMatrixUndo(this.matrix,newMatrix);
+				
 			var	initRow = movement[0];
 			var initCol = movement[1];
 			
@@ -220,7 +228,7 @@ if(this.scene.state != "ANIMATION" && this.scene.state != "PROCESSING")
 			this.makeAnimation(movement,true);
 			
 			var deletedPiece;
-			if(this.eatenPiece(this.matrix,this.prevMatrixs[0])){
+			if(this.eatenPiece(this.matrix,newMatrix)){
 				deletedPiece = this.deletedPieces.pop();
 				
 				//make delete animation
@@ -252,9 +260,9 @@ if(this.scene.state != "ANIMATION" && this.scene.state != "PROCESSING")
 				else this.player1Points -=2;
 			}
 		
-			this.matrix = this.prevMatrixs[0];
-			this.currentPlayer = this.prevPlayer[0];
-			this.currentCostLeft = this.prevCosts[0];
+			this.matrix = newMatrix;
+			this.currentPlayer = newPlayer;
+			this.currentCostLeft = newCost;
 			var self = this.scene;
 			this.scene.getPlays(this,function(listPlays) {
 					self.Board.parsingPlays(listPlays);
@@ -267,7 +275,6 @@ if(this.scene.state != "ANIMATION" && this.scene.state != "PROCESSING")
 			this.scene.state = "ANIMATION";
 			if(this.gameOver)
 				this.gameOver = false;
-			//this.scene.state = "IDLE";
 		}
 }
 
@@ -284,7 +291,7 @@ Board.prototype.defineDefeatAnimation = function(piece) {
 	var variationToCorner;
 	if(piece.player == 2)
 		variationToCorner = vec3.fromValues((-piece.y*1.1-0.5)-5.8,0,(-piece.x*1.1-1.5)+6.7);
-	else if(piece.player == 1) variationToCorner = vec3.fromValues((-piece.y*1.1-0.5)+1.1*this.nCol+3.2,0,(-piece.x*1.1-1.5)+6.7);
+	else if(piece.player == 1 || piece.player == 5) variationToCorner = vec3.fromValues((-piece.y*1.1-0.5)+1.1*this.nCol+3.2,0,(-piece.x*1.1-1.5)+6.7);
 	//ta bugado, nao sei desbugar fds, que cancro fodido TODO	
 	
 	var number = this.howManyDefeated(piece.player)-1;
@@ -620,7 +627,16 @@ Board.prototype.displayTurn = function() {
 	this.scene.translate(0,0,-3);
 	
 	if(!this.gameOver){
-		if(this.currentPlayer == 0){
+		if(this.scene.replayMode){
+			this.scene.pushMatrix();
+			this.displaySetence(this.Player1Name.toUpperCase());
+			this.scene.popMatrix();
+			this.scene.translate(0,0,1.5);
+			this.scene.pushMatrix();
+			this.displaySetence("REPLAY MODE");
+			this.scene.popMatrix();
+		}
+		else if(this.currentPlayer == 0){
 			this.scene.pushMatrix();
 			this.displaySetence(this.Player1Name.toUpperCase());
 			this.scene.popMatrix();
@@ -767,11 +783,66 @@ Board.prototype.display = function() {
  Board.prototype.updateCronometer = function() {
  	if(this.time_left <= 0 && !this.gameOver)
 		{
-			
+			if(this.scene.state != "ANIMATION")
+			{
 			this.scene.makeEasyPlay(this.scene,this.scene.putBoardAndGetPlays);
 			this.time_left = 30;
+			}
 		}
 	
 	this.time_left -= this.delta/1000;
 
+}
+
+Board.prototype.reset = function() {
+
+this.currentPlayer = 0;
+this.time_left = 30;
+this.currentCostLeft = 2;
+this.currentIDFromList = -1;
+
+this.player1Points = 0;
+this.player2Points = 0;
+
+this.gameOver = false;
+
+}
+
+Board.prototype.popUntilIndex = function(index,matrix) {
+var tempM = [];
+
+for(var tempIndex = index;tempIndex > 0; tempIndex--)
+{
+	tempM.push(matrix.pop());
+}
+var returnValue = matrix.pop();
+
+//returning matrix to normal
+
+matrix.push(returnValue);
+
+while(tempM.length != 0)
+	matrix.push(tempM.pop());
+
+return returnValue;
+}
+
+Board.prototype.playReplay = function(replayCounter) {
+
+var newMatrix = this.popUntilIndex(replayCounter,this.prevMatrixs);
+var newCost = this.popUntilIndex(replayCounter,this.prevCosts);
+var newPlayer = this.popUntilIndex(replayCounter,this.prevPlayer);
+
+var movement = this.findDiferenceMatrix(this.matrix,newMatrix);
+
+console.log(this.matrix);
+console.log(newMatrix);
+console.log(movement);
+
+this.scene.state = "ANIMATION";
+this.makeAnimation(movement,false);
+
+this.matrix = newMatrix;
+this.currentCostLeft = newCost;
+this.currentPlayer = newPlayer;
 }

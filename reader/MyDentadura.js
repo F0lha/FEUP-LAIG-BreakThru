@@ -19,7 +19,7 @@
  
 
  	//vehicle parts
- 	this.dente = new MyCylinder(scene, 0.2, 0.1, 0, 50, 50);
+ 	this.dente = new MyCylinder(scene, 0.2, 0.1, 0, 5, 5);
  };
 
  MyDentadura.prototype = Object.create(CGFobject.prototype);

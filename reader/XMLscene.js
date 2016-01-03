@@ -7,12 +7,21 @@ function XMLscene() {
 	this.timerLastUpdate = 0;
 	
 	//interface
+	this.loadedGraph = "test1.lsx";
+	this.CurrentGraph = "test1.lsx";
+	
+	this.graphChoice = ["test1.lsx","test2.lsx","LAIG_TP1_LSX_T02_G05_v1.lsx"];
 	
 	
 	this.Player1Difficulty = "Human";
 	this.Player2Difficulty = "Human";
 	
 	this.playerDificulty = ["Human", "Easy", "Hard"];
+	
+	//camera
+	
+	this.CurrentCamera = "Top";
+	this.camaraChoice = ["Right","Left","Top"];
 
 	this.flag = true;
 	this.state = "PROCESSING";
@@ -20,10 +29,16 @@ function XMLscene() {
 	this.texturesList = {};
 	this.interface = null;
 	this.app = null;
+	
+	
+	this.replayMode = false;
+	this.replayCounter = -1;
 }
 
 XMLscene.prototype = Object.create(CGFscene.prototype);
 XMLscene.prototype.constructor = XMLscene;
+
+
 
 XMLscene.prototype.init = function (application) {
     CGFscene.prototype.init.call(this, application);
@@ -218,7 +233,7 @@ diffuseA);
 };
 
 XMLscene.prototype.initCameras = function () {
-    this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(15, 15, 15), vec3.fromValues(0, 0, 0));
+    this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(0.01,40,5), vec3.fromValues(0, 0, 0));
 };
 
 XMLscene.prototype.setDefaultAppearance = function () {
@@ -246,31 +261,15 @@ XMLscene.prototype.onGraphLoaded = function () {
 
 	this.initLights();	
 	
-	//this.loadPrimitives();
+	this.loadPrimitives();
 	
-	//this.loadMaterials();
+	this.loadMaterials();
 	
-	//this.loadTextures();
+	this.loadTextures();
 	
-	//this.loadAnimations();
+	this.loadAnimations();
 	
 	this.setUpdatePeriod(50/6);
-		
-	this.RESETBOARD();
-	
-	if (this.interF != null)
-	    this.interF.onGraphLoaded();
-	
-};
-
-/*
-*	Reset Board and Initialize it
-*/
-XMLscene.prototype.RESETBOARD = function() {
-
-	this.state = "PROCESSING";
-
-	this.Board = null;
 	
 	this.Board = new Board(this);
 	
@@ -281,6 +280,36 @@ XMLscene.prototype.RESETBOARD = function() {
         self.Board.init(matrix);
         }
     );
+	this.getPlays(this.Board,function(listPlays) {
+					self.Board.parsingPlays(listPlays);
+					self.state = "IDLE";
+	});
+	
+	this.interF.onGraphLoaded();
+	
+};
+
+/*
+*	Reset Board and Initialize it
+*/
+XMLscene.prototype.RESETBOARD = function() {
+
+	this.state = "PROCESSING";
+	
+		var self = this;
+	
+	this.initBoard(
+        function(matrix){
+        self.Board.init(matrix);
+        }
+    );
+	
+	this.Board.reset();
+	
+	this.Board.prevMatrixs = [];
+	this.Board.prevCosts = [];
+	this.Board.prevPlayer = [];
+	
 	this.getPlays(this.Board,function(listPlays) {
 					self.Board.parsingPlays(listPlays);
 					self.state = "IDLE";
@@ -505,9 +534,13 @@ XMLscene.prototype.Picking = function ()
 					break;
 					
 				case "PRESSED":
+					var list = this.getListOfPicking(pick);
+					
 					if(this.Board.selectedID == pick){ //reset selection
 						this.Board.resetSelection();
 						}
+					else if(list.length != 0)
+						this.Board.defineSelection(pick,list);
 					else if(this.isADest(pick,this.Board.listSelected))
 						{
 							var self = this;
@@ -626,70 +659,114 @@ XMLscene.prototype.PLAY = function () {
 */	
 XMLscene.prototype.display = function () {
 
-	// ---- BEGIN Background, camera and axis setup
+	if(this.loadedGraph == this.CurrentGraph){
 
-	
-	// Clear image and depth buffer every time we update the scene
-    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-    this.gl.enable(this.gl.DEPTH_TEST);
+		// ---- BEGIN Background, camera and axis setup
 
-	// Initialize Model-View matrix as identity (no transformation
-	this.updateProjectionMatrix();
-    this.loadIdentity();
-
-	// Apply transformations corresponding to the camera position relative to the origin
-	this.applyViewMatrix();
-	
-	this.setDefaultAppearance();
-	
-	// ---- END Background, camera and axis setup
-
-	// it is important that things depending on the proper loading of the graph
-	// only get executed after the graph has loaded correctly.
-	// This is one possible way to do it
-	if (this.graph.loadedOk)
-	{
-		//this.initialTransformations();
 		
-		this.interF.updateInterface();
+		// Clear image and depth buffer every time we update the scene
+		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+		this.gl.enable(this.gl.DEPTH_TEST);
+
+		// Initialize Model-View matrix as identity (no transformation
+		this.updateProjectionMatrix();
+		this.loadIdentity();
+
+		// Apply transformations corresponding to the camera position relative to the origin
+		this.applyViewMatrix();
 		
-		if(!this.Board.gameOver &&  this.state != "ANIMATION"){
-			if(this.Board.currentPlayer == 0 && this.Player1Difficulty == "Human"){
-				this.setPickEnabled(true);
-				this.Picking();
-				this.clearPickRegistration();
-			}
-			else if(this.Board.currentPlayer == 1 && this.Player2Difficulty == "Human"){
-				this.setPickEnabled(true);
-				this.Picking();
-				this.clearPickRegistration();
-			}	
-			else{
-				//bot plays
+		this.setDefaultAppearance();
+		
+		// ---- END Background, camera and axis setup
+
+		// it is important that things depending on the proper loading of the graph
+		// only get executed after the graph has loaded correctly.
+		// This is one possible way to do it
+		if (this.graph.loadedOk)
+		{
+		
+			console.log(this.Board.prevMatrixs.length);
+			//this.initialTransformations();
+			
+			this.updateCamara();
+			
+			this.interF.updateInterface();
+			
+			if(this.replayMode && this.state == "IDLE")
+			{
 				this.setPickEnabled(false);
-			}}
-		else {
-		this.setPickEnabled(false);
-		}
-			
-		// Draw axis
-		if (this.axis.length != 0) 
-			this.axis.display();
-			
-		this.displayLights();
-		
-		//this.drawNode(this.graph.rootID,'null','null');
-		
-		this.pushMatrix();
-		
-		//this.translate(200,200,200);
 				
-		this.Board.display();
-		
-		this.popMatrix();
+				if(this.Board.prevMatrixs.length != (this.replayCounter)){
+					this.Board.playReplay(this.replayCounter);
+					this.replayCounter++;
+					console.log(this.replayCounter);
+					console.log(this.Board.prevMatrixs.length);
+					if(this.Board.prevMatrixs.length == (this.replayCounter)){
+						this.replayMode = false;
+						this.Board.prevMatrixs.shift();
+						this.Board.prevCosts.shift();
+						this.Board.prevPlayer.shift();
+						this.Board.time_left = 30;
+						
+						var self = this;
+						this.getPlays(this.Board,function(listPlays) {
+										self.Board.parsingPlays(listPlays);
+										self.state = "IDLE";
+						});
+						
+						
+					}
+				}
+			}
+			else if(!this.Board.gameOver &&  this.state != "ANIMATION"){
+				if(this.Board.currentPlayer == 0 && this.Player1Difficulty == "Human"){
+					console.log("entra");
+					this.setPickEnabled(true);
+					this.Picking();
+					this.clearPickRegistration();
+				}
+				else if(this.Board.currentPlayer == 1 && this.Player2Difficulty == "Human"){
+					this.setPickEnabled(true);
+					this.Picking();
+					this.clearPickRegistration();
+				}	
+				else{
+					//bot plays
+					this.setPickEnabled(false);
+				}
+			}
+			else {
+				this.setPickEnabled(false);
+			}
+				
+			// Draw axis
+			if (this.axis.length != 0) 
+				this.axis.display();
+				
+			this.displayLights();
+			
+			this.drawNode(this.graph.rootID,'null','null');
+			
+			this.pushMatrix();
+					
+			this.Board.display();
+			
+			this.popMatrix();
 
-	};
+		}
+	}
+	else {
+		//change lsx
+		
+		var filename=getUrlVars()['file'] || this.CurrentGraph;
+
+		// create and load graph, and associate it to scene. 
+		// Check console for loading errors
+		new MySceneGraph(filename, this);
+		
+		this.loadedGraph = this.CurrentGraph;
+	}
 
 };
 
@@ -792,4 +869,75 @@ XMLscene.prototype.update = function (currTime) {
 }
 		this.Board.delta = this.currTimer - this.timerLastUpdate;
 
+}
+
+XMLscene.prototype.updateCamara = function(){
+
+	switch(this.CurrentCamera)
+	{
+		case "Left":
+			if(this.camera.position[0] <= -20)
+				this.camera.position[0] = -20;
+			else this.camera.position[0] -= 0.5;
+			if(this.camera.position[2] < 20)
+				this.camera.position[2] += 0.5;
+			else this.camera.position[2] = 20;
+			if(this.camera.position[1] > 20)
+				this.camera.position[1] -= 0.5;
+			else this.camera.position[1] = 20;
+			break;
+		case "Right":
+			if(this.camera.position[0] >= 20)
+				this.camera.position[0] = 20;
+			else this.camera.position[0] += 0.5;
+			if(this.camera.position[2] < 20)
+				this.camera.position[2] += 0.5;
+			else this.camera.position[2] = 20;
+			if(this.camera.position[1] > 20)
+				this.camera.position[1] -= 0.5;
+			else this.camera.position[1] = 20;
+			break;
+		case "Top":
+			if(this.camera.position[0] < 0.2 && this.camera.position[0] > -0.2)
+				this.camera.position[0] = 0.01;	
+			else if(this.camera.position[0] > 0)
+				this.camera.position[0] -= 0.5;
+			else if(this.camera.position[0] < 0 )
+				this.camera.position[0] += 0.5;
+				
+			if(this.camera.position[2] > 0)
+					this.camera.position[2] -= 0.5;
+			if(this.camera.position[2] < 5)
+					this.camera.position[2] = 5;
+			if(this.camera.position[1] < 40)
+					this.camera.position[1] += 0.5;
+			else this.camera.position[1] = 40;
+			break;
+	}
+
+
+}
+
+XMLscene.prototype.REPLAY = function(){
+	if(this.state == "IDLE")
+		if(this.Board.prevMatrixs.length >= 1)
+		{
+			
+			this.Board.prevMatrixs.unshift(this.Board.matrix);
+			this.Board.prevCosts.unshift(this.Board.currentCostLeft);
+			this.Board.prevPlayer.unshift(this.Board.currentPlayer);
+			
+			this.replayMode = true;
+			this.replayCounter = 1;
+
+			var self = this;
+
+			this.Board.reset();
+
+			this.initBoard(
+					function(matrix){
+					self.Board.init(matrix);
+					}
+				);
+		}
 }

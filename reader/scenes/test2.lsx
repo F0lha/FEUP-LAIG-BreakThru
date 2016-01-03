@@ -1,0 +1,431 @@
+<!-- cada no animado deve levar a tag <ANIMATIONREF ID="ss"/> por cada animação pretendida -->
+
+
+<SCENE>
+	<INITIALS>
+		<frustum near="1" far="500"/>                    
+		<translation x="0" y="0" z="0" />            
+		<rotation axis="x" angle="0" />   
+		<rotation axis="y" angle="0" />            
+		<rotation axis="z" angle="0" />             
+		<scale sx="0.75" sy="0.75" sz="0.75" />                
+		<reference length="5" />                  
+	</INITIALS>
+
+
+	<ILLUMINATION>
+		<ambient r="1" g="1" b="1" a="1" />          
+		<background r="0" g="0" b="0" a="1" />       
+	</ILLUMINATION>
+	
+
+	<LIGHTS>
+		<LIGHT id="L1">                              
+			<enable value="1" />                       
+			<position x="10" y="3.5" z="10" w="3" />      
+			<ambient r="0.5" g="0.5" b="0.5" a="1" />       
+			<diffuse r="0.5" g="0.5" b="0.5" a="1" />     
+			<specular r="0.5" g="0.5" b="0.5" a="1" />    
+		</LIGHT>
+
+		<LIGHT id="L2">                              
+			<enable value="1" />                       
+			<position x="-10" y="3.5" z="-10" w="3" />       
+			<ambient r="0.5" g="0.5" b="0.5" a="1" />       
+			<diffuse r="0.5" g="0.5" b="0.5" a="1" />     
+			<specular r="0.5" g="0.5" b="0.5" a="1" />    
+		</LIGHT>
+		<LIGHT id="L3">                              
+			<enable value="1" />                       
+			<position x="-10" y="3.5" z="10" w="3" />      
+			<ambient r="0.5" g="0.5" b="0.5" a="1" />       
+			<diffuse r="0.5" g="0.5" b="0.5" a="1" />     
+			<specular r="0.5" g="0.5" b="0.5" a="1" />    
+		</LIGHT>
+		<LIGHT id="L4">                              
+			<enable value="1" />                       
+			<position x="10" y="3.5" z="-10" w="3" />      
+			<ambient r="0.5" g="0.5" b="0.5" a="1" />       
+			<diffuse r="0.5" g="0.5" b="0.5" a="1" />     
+			<specular r="0.5" g="0.5" b="0.5" a="1" />    
+		</LIGHT> 
+
+	</LIGHTS>
+
+
+	<TEXTURES>  
+		<TEXTURE id="base_texture">
+			<file path="./textures/b_plant.png" />
+			<amplif_factor s="1" t="1" /> 
+		</TEXTURE>
+		<TEXTURE id="gn_texture">
+			<file path="./textures/game_name_texture.png" />
+			<amplif_factor s="1" t="1" /> 
+		</TEXTURE>
+		<TEXTURE id="wood_texture">
+			<file path="./textures/wood.jpg" />
+			<amplif_factor s="1" t="1" /> 
+		</TEXTURE>
+	</TEXTURES> 
+
+
+	<MATERIALS>
+		<MATERIAL id="default">                                  
+			<shininess value="5" />
+			<specular r="0.5" g="0.5" b="0.5" a="1" /> 
+			<diffuse r="0.2" g="0.2" b="0.2" a="1" />
+			<ambient r="0.2" g="0.2" b="0.2" a="1" />
+			<emission r="0" g="0" b="0" a="1" /> 
+		</MATERIAL>
+	</MATERIALS>
+
+	<ANIMATIONS>
+		<ANIMATION id="subir" span="2" type="linear">
+			<controlpoint xx="0" yy="2" zz="0"/>
+			<controlpoint xx="0" yy="10" zz="0"/>
+		</ANIMATION>
+	</ANIMATIONS>
+
+	<LEAVES>
+		<LEAF id="RECT" type="rectangle" args="0 1 1 0" />
+		<LEAF id="CYL" type="cylinder" args="1 1 1 1 60" />
+		<LEAF id="SPH" type="sphere" args="1 20 50" />
+		<LEAF id="TRI" type="triangle" args="0 1 0  -0.5 0 1  0.5 0 1" />
+		<LEAF id="CONE" type="cylinder" args="1.5 0.125 0 1 60" />
+		<LEAF id="VEHICLE" type="vehicle" />
+		<LEAF id="terrain" type="terrain" texture="shaders/textureMap.jpg" heightmap="shaders/heightMap.png"/>
+		<LEAF id="PLANE" type="plane" parts="5" />
+		<LEAF id="PATCH" type="patch" order="3" partsU="20" partsV="20">
+			<controlpoint x="3" y="0" z="0" />
+			<controlpoint x="3" y="0" z="0" />
+			<controlpoint x="3" y="0" z="0" />
+			<controlpoint x="3" y="0" z="0" />
+
+			<controlpoint x="2" y="1" z="-2" />
+			<controlpoint x="2" y="2" z="-1.5" />
+			<controlpoint x="2" y="2" z="1.5" />
+			<controlpoint x="2" y="1" z="2" />
+
+			<controlpoint x="1" y="1" z="-3" />
+			<controlpoint x="1" y="1" z="-2.5" />
+			<controlpoint x="1" y="1" z="0" />
+			<controlpoint x="1" y="1" z="0.5" />
+
+			<controlpoint x="1" y="0.8" z="-1" />
+			<controlpoint x="1" y="0.8" z="-1" />
+			<controlpoint x="1" y="0.8" z="-1" />
+			<controlpoint x="1" y="0.8" z="-1" />
+		</LEAF>	
+	</LEAVES>
+
+
+	<NODES>
+		<ROOT id="root" />  
+
+		<NODE id="root">       
+			<MATERIAL id="default" />             
+			<TEXTURE id="grass" />    
+			
+			<DESCENDANTS> 
+<DESCENDANT id="mesa" />
+			</DESCENDANTS>
+		</NODE>
+		
+		<NODE id="mesa">   
+		
+		<MATERIAL id="null" />             
+		<TEXTURE id="null" />  
+		<TRANSLATION x="0" y="-0.01" z="0" />
+		
+		
+			<DESCENDANTS>
+										<DESCENDANT id="base" />
+				<DESCENDANT id="tampo" />
+				<DESCENDANT id="perna1" />
+				<DESCENDANT id="perna2" />
+				<DESCENDANT id="perna3" />
+				<DESCENDANT id="perna4" />      <!-- "ss" is the identifier of a node or of leaf; -->
+													 <!-- may be repeatad as necessary. It can refer an -->
+													 <!-- identifier of another node or leaf, later defined in the lsx file. -->
+					</DESCENDANTS>
+	 
+				</NODE>	
+
+		<NODE id="base">       
+			<MATERIAL id="default" />             
+			<TEXTURE id="gn_texture" />  
+			
+			<TRANSLATION x="-50" y="-21" z="50" />
+			<SCALE sx="100" sy="1" sz="100" />
+		   	<ROTATION axis="x" angle="-90" />	
+			<DESCENDANTS> 
+				<DESCENDANT id="RECT" />
+			</DESCENDANTS>
+		</NODE>
+		<NODE id="rectangle1">       <!--   defines one intermediate node; may be repeated as necessary -->
+		 		<!-- frente -->
+				<!-- next two lines are mandatory -->
+				<MATERIAL id="null" />      <!-- declared material superimposes the material received from parent node -->
+										  <!-- id="null" maintains material from parent node        -->
+				<TEXTURE id="null" />       <!-- declared texture superimposes the texture received from parent node -->
+										  <!-- id="null" maintains texture from parent node       -->
+								  <!-- id="clear" clears texture declaration received from parent node      -->
+	
+	
+				<!-- geom. transf. are optional and may be repeated, in any order, as necessary -->
+				<TRANSLATION x="0" y="0" z="1" />						
+	
+				<!-- declaring descendents, ate least one node or one leaf must be present -->
+						<DESCENDANTS>
+						<DESCENDANT id="RECT" />       <!-- "ss" is the identifier of a node or of leaf; -->
+													 <!-- may be repeatad as necessary. It can refer an -->
+													 <!-- identifier of another node or leaf, later defined in the lsx file. -->
+					</DESCENDANTS>
+	 
+				</NODE>		 
+				<NODE id="rectangle2">       <!--   defines one intermediate node; may be repeated as necessary -->
+		 				<!-- de traz -->
+					<!-- next two lines are mandatory -->
+					<MATERIAL id="null" />      <!-- declared material superimposes the material received from parent node -->
+											  <!-- id="null" maintains material from parent node        -->
+					<TEXTURE id="null" />       <!-- declared texture superimposes the texture received from parent node -->
+										  <!-- id="null" maintains texture from parent node       -->
+										  <!-- id="clear" clears texture declaration received from parent node      -->
+	
+	 
+					<!-- geom. transf. are optional and may be repeated, in any order, as necessary -->
+					<TRANSLATION x="0" y="1" z="0" />
+					<ROTATION axis="x" angle="180" />
+		 
+					<!-- declaring descendents, ate least one node or one leaf must be present -->
+					<DESCENDANTS>
+						<DESCENDANT id="RECT" />       <!-- "ss" is the identifier of a node or of leaf; -->
+													 <!-- may be repeatad as necessary. It can refer an -->
+													 <!-- identifier of another node or leaf, later defined in the lsx file. -->
+					</DESCENDANTS>
+	 
+				</NODE>
+		 
+				<NODE id="rectangle3">       <!--   defines one intermediate node; may be repeated as necessary -->
+	 				<!-- direita -->		 
+				<!-- next two lines are mandatory -->
+					<MATERIAL id="null" />      <!-- declared material superimposes the material received from parent node -->
+										  <!-- id="null" maintains material from parent node        -->
+				<TEXTURE id="null" />       <!-- declared texture superimposes the texture received from parent node -->
+											  <!-- id="null" maintains texture from parent node       -->
+												  <!-- id="clear" clears texture declaration received from parent node      -->
+	 
+	 
+					<!-- geom. transf. are optional and may be repeated, in any order, as necessary -->
+					<TRANSLATION x="1" y="0" z="1" />
+					<ROTATION axis="y" angle="90" />
+					<!-- declaring descendents, ate least one node or one leaf must be present -->
+						<DESCENDANTS>
+						<DESCENDANT id="RECT" />       <!-- "ss" is the identifier of a node or of leaf; -->
+													 <!-- may be repeatad as necessary. It can refer an -->
+													 <!-- identifier of another node or leaf, later defined in the lsx file. -->
+					</DESCENDANTS>
+	 
+				</NODE>
+		 
+					<NODE id="rectangle4">       <!--   defines one intermediate node; may be repeated as necessary -->
+		 				<!-- esquerda -->
+						<!-- next two lines are mandatory -->
+						<MATERIAL id="null" />      <!-- declared material superimposes the material received from parent node -->
+												  <!-- id="null" maintains material from parent node        -->
+						<TEXTURE id="null" />       <!-- declared texture superimposes the texture received from parent node -->
+												  <!-- id="null" maintains texture from parent node       -->
+												  <!-- id="clear" clears texture declaration received from parent node      -->
+		 
+		 
+						<!-- geom. transf. are optional and may be repeated, in any order, as necessary -->
+						<ROTATION axis="y" angle="-90" />
+		 
+						<!-- declaring descendents, ate least one node or one leaf must be present -->
+						<DESCENDANTS>
+							<DESCENDANT id="RECT" />       <!-- "ss" is the identifier of a node or of leaf; -->
+														 <!-- may be repeatad as necessary. It can refer an -->
+														 <!-- identifier of another node or leaf, later defined in the lsx file. -->
+						</DESCENDANTS>
+		 
+					</NODE>
+		 
+					<NODE id="rectangle5">       <!--   defines one intermediate node; may be repeated as necessary -->
+		 				<!-- topo -->
+						<!-- next two lines are mandatory -->
+						<MATERIAL id="null" />      <!-- declared material superimposes the material received from parent node -->
+												  <!-- id="null" maintains material from parent node        -->
+						<TEXTURE id="null" />       <!-- declared texture superimposes the texture received from parent node -->
+												  <!-- id="null" maintains texture from parent node       -->
+												  <!-- id="clear" clears texture declaration received from parent node      -->
+		 
+		 
+						<!-- geom. transf. are optional and may be repeated, in any order, as necessary -->
+						<TRANSLATION x="0" y="1" z="1" />
+						<ROTATION axis="x" angle="-90" />
+
+						<!-- declaring descendents, ate least one node or one leaf must be present -->
+						<DESCENDANTS>
+							<DESCENDANT id="RECT" />       <!-- "ss" is the identifier of a node or of leaf; -->
+														 <!-- may be repeatad as necessary. It can refer an -->
+														 <!-- identifier of another node or leaf, later defined in the lsx file. -->
+						</DESCENDANTS>
+		 
+					</NODE>
+		 
+					<NODE id="rectangle6">       <!--   defines one intermediate node; may be repeated as necessary -->
+		 				<!-- baixo -->
+						<!-- next two lines are mandatory -->
+						<MATERIAL id="null" />      <!-- declared material superimposes the material received from parent node -->
+												  <!-- id="null" maintains material from parent node        -->
+						<TEXTURE id="null" />       <!-- declared texture superimposes the texture received from parent node -->
+												  <!-- id="null" maintains texture from parent node       -->
+												  <!-- id="clear" clears texture declaration received from parent node      -->
+		 
+		 
+						<!-- geom. transf. are optional and may be repeated, in any order, as necessary -->
+						<TRANSLATION x="0" y="0" z="0" />
+		 				<ROTATION axis="x" angle="-270" />
+						
+						<!-- declaring descendents, ate least one node or one leaf must be present -->
+						<DESCENDANTS>
+							<DESCENDANT id="RECT" />       <!-- "ss" is the identifier of a node or of leaf; -->
+														 <!-- may be repeatad as necessary. It can refer an -->
+														 <!-- identifier of another node or leaf, later defined in the lsx file. -->
+						</DESCENDANTS>
+		 
+					</NODE>
+		 
+					<NODE id="tampo">       <!--   defines one intermediate node; may be repeated as necessary -->
+		 
+						<!-- next two lines are mandatory -->
+						<MATERIAL id="default" />      <!-- declared material superimposes the material received from parent node -->
+												  <!-- id="null" maintains material from parent node        -->
+						<TEXTURE id="wood_texture" />       <!-- declared texture superimposes the texture received from parent node -->
+												  <!-- id="null" maintains texture from parent node       -->
+												  <!-- id="clear" clears texture declaration received from parent node      -->
+		 
+		 
+						<!-- geom. transf. are optional and may be repeated, in any order, as necessary -->
+						<TRANSLATION x="-20" y="-1" z="-12.5" />
+						<SCALE sx="40" sy="1" sz="25" />
+						<ROTATION axis="x" angle="0" />						
+						<!-- declaring descendents, ate least one node or one leaf must be present -->
+						<DESCENDANTS>
+							<DESCENDANT id="rectangle1" />       <!-- "ss" is the identifier of a node or of leaf; -->
+							<DESCENDANT id="rectangle2" />
+							<DESCENDANT id="rectangle3" />
+							<DESCENDANT id="rectangle4" />
+							<DESCENDANT id="rectangle5" />
+							<DESCENDANT id="rectangle6" />
+						</DESCENDANTS>		 
+				</NODE>	
+					<NODE id="perna1">       <!--   defines one intermediate node; may be repeated as necessary -->
+		 
+						<!-- next two lines are mandatory -->
+						<MATERIAL id="default" />      <!-- declared material superimposes the material received from parent node -->
+												  <!-- id="null" maintains material from parent node        -->
+						<TEXTURE id="wood_texture" />       <!-- declared texture superimposes the texture received from parent node -->
+												  <!-- id="null" maintains texture from parent node       -->
+												  <!-- id="clear" clears texture declaration received from parent node      -->
+		 
+		 
+						<!-- geom. transf. are optional and may be repeated, in any order, as necessary -->
+						<TRANSLATION x="-20" y="-21" z="-12.5" />
+						<SCALE sx="2" sy="20" sz="2" />
+						<ROTATION axis="x" angle="0" />						
+						<!-- declaring descendents, ate least one node or one leaf must be present -->
+						<DESCENDANTS>
+							<DESCENDANT id="rectangle1" />       <!-- "ss" is the identifier of a node or of leaf; -->
+							<DESCENDANT id="rectangle2" />
+							<DESCENDANT id="rectangle3" />
+							<DESCENDANT id="rectangle4" />
+							<DESCENDANT id="rectangle5" />
+							<DESCENDANT id="rectangle6" />
+						</DESCENDANTS>		 
+				</NODE>	
+				<NODE id="perna2">       <!--   defines one intermediate node; may be repeated as necessary -->
+		 
+						<!-- next two lines are mandatory -->
+						<MATERIAL id="default" />      <!-- declared material superimposes the material received from parent node -->
+												  <!-- id="null" maintains material from parent node        -->
+						<TEXTURE id="wood_texture" />       <!-- declared texture superimposes the texture received from parent node -->
+												  <!-- id="null" maintains texture from parent node       -->
+												  <!-- id="clear" clears texture declaration received from parent node      -->
+		 
+		 
+						<!-- geom. transf. are optional and may be repeated, in any order, as necessary -->
+						<TRANSLATION x="18" y="-21" z="10.5" />
+						<SCALE sx="2" sy="20" sz="2" />
+						<ROTATION axis="x" angle="0" />						
+						<!-- declaring descendents, ate least one node or one leaf must be present -->
+						<DESCENDANTS>
+							<DESCENDANT id="rectangle1" />       <!-- "ss" is the identifier of a node or of leaf; -->
+							<DESCENDANT id="rectangle2" />
+							<DESCENDANT id="rectangle3" />
+							<DESCENDANT id="rectangle4" />
+							<DESCENDANT id="rectangle5" />
+							<DESCENDANT id="rectangle6" />
+						</DESCENDANTS>		 
+				</NODE>	
+				<NODE id="perna3">       <!--   defines one intermediate node; may be repeated as necessary -->
+		 
+						<!-- next two lines are mandatory -->
+						<MATERIAL id="default" />      <!-- declared material superimposes the material received from parent node -->
+												  <!-- id="null" maintains material from parent node        -->
+						<TEXTURE id="wood_texture" />       <!-- declared texture superimposes the texture received from parent node -->
+												  <!-- id="null" maintains texture from parent node       -->
+												  <!-- id="clear" clears texture declaration received from parent node      -->
+		 
+		 
+						<!-- geom. transf. are optional and may be repeated, in any order, as necessary -->
+						<TRANSLATION x="18" y="-21" z="-12.5" />
+						<SCALE sx="2" sy="20" sz="2" />
+						<ROTATION axis="x" angle="0" />						
+						<!-- declaring descendents, ate least one node or one leaf must be present -->
+						<DESCENDANTS>
+							<DESCENDANT id="rectangle1" />       <!-- "ss" is the identifier of a node or of leaf; -->
+							<DESCENDANT id="rectangle2" />
+							<DESCENDANT id="rectangle3" />
+							<DESCENDANT id="rectangle4" />
+							<DESCENDANT id="rectangle5" />
+							<DESCENDANT id="rectangle6" />
+						</DESCENDANTS>		 
+				</NODE>	
+				<NODE id="perna4">       <!--   defines one intermediate node; may be repeated as necessary -->
+		 
+						<!-- next two lines are mandatory -->
+						<MATERIAL id="default" />      <!-- declared material superimposes the material received from parent node -->
+												  <!-- id="null" maintains material from parent node        -->
+						<TEXTURE id="wood_texture" />       <!-- declared texture superimposes the texture received from parent node -->
+												  <!-- id="null" maintains texture from parent node       -->
+												  <!-- id="clear" clears texture declaration received from parent node      -->
+		 
+		 
+						<!-- geom. transf. are optional and may be repeated, in any order, as necessary -->
+						<TRANSLATION x="-20" y="-21" z="10.5" />
+						<SCALE sx="2" sy="20" sz="2" />
+						<ROTATION axis="x" angle="0" />						
+						<!-- declaring descendents, ate least one node or one leaf must be present -->
+						<DESCENDANTS>
+							<DESCENDANT id="rectangle1" />       <!-- "ss" is the identifier of a node or of leaf; -->
+							<DESCENDANT id="rectangle2" />
+							<DESCENDANT id="rectangle3" />
+							<DESCENDANT id="rectangle4" />
+							<DESCENDANT id="rectangle5" />
+							<DESCENDANT id="rectangle6" />
+						</DESCENDANTS>		 
+				</NODE>	
+				<NODE id="veiculo">       
+					<MATERIAL id="null" />             
+					<TEXTURE id="wood_texture" /> 
+					
+					<SCALE sx="5" sy="5" sz="5" />
+
+					<DESCENDANTS> 
+						<DESCENDANT id="VEHICLE" />
+					</DESCENDANTS>
+				</NODE>
+	</NODES>
+
+</SCENE> 

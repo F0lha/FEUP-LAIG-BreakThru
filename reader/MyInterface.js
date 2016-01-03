@@ -63,37 +63,70 @@ MyInterface.prototype.updateInterface = function(){
 }
 
 MyInterface.prototype.onGraphLoaded = function(){
-	
-	var lights=this.gui.addFolder("Luzes");
-	for(id in this.scene.lightsInterface)
-	{
-		lights.add(this.scene.lightsInterface,id,this.scene.lightsInterface[id]);
+
+	if(this.Scenes == null){
+		this.Scenes=this.gui.addFolder("Scenes");
+		
+		this.Scenes.add(this.scene,"CurrentGraph",this.scene.graphChoice);
 	}
 	
-	this.player1=this.gui.addFolder("Player1");
-	this.player1.open();
+	if(this.Camara == null){
+		this.Camara=this.gui.addFolder("Camara");
+		
+		this.Camara.add(this.scene,"CurrentCamera",this.scene.camaraChoice);
+	}
+
+	if(this.lights == null){
+		this.lights=this.gui.addFolder("Luzes");
+		this.lightsArray = [];
+		for(id in this.scene.lightsInterface)
+		{
+			this.lightsArray.push(this.lights.add(this.scene.lightsInterface,id,this.scene.lightsInterface[id]));
+		}
+	}
+	else{
+		for(id in this.lightsArray)
+		{
+			this.lights.remove(this.lightsArray[id]);
+		}
+		this.lightsArray = [];
+		for(id in this.scene.lightsInterface)
+		{
+			this.lightsArray.push(this.lights.add(this.scene.lightsInterface,id,this.scene.lightsInterface[id]));
+		}
+	}
+	if(this.player1 == null){
+		this.player1=this.gui.addFolder("Player1");
+		this.player1.open();
+		
+		this.player1.add(this.scene, 'Player1Difficulty', this.scene.playerDificulty);
+		this.player1.add(this.scene.Board,"Player1Name");
+	}
 	
-	this.player1.add(this.scene, 'Player1Difficulty', this.scene.playerDificulty);
-	this.player1.add(this.scene.Board,"Player1Name");
-	
-	
-	this.player2=this.gui.addFolder("Player2");
-	this.player2.open();
-	
-	this.player2.add(this.scene, 'Player2Difficulty', this.scene.playerDificulty);
-	this.player2.add(this.scene.Board,"Player2Name");
-	
+	if(this.player1 == null){
+		this.player2=this.gui.addFolder("Player2");
+		this.player2.open();
+		
+		this.player2.add(this.scene, 'Player2Difficulty', this.scene.playerDificulty);
+		this.player2.add(this.scene.Board,"Player2Name");
+	}
 	
 	
 	//Color of Text
-	this.gui.addColor(this.scene.Board, "Color");
+	if(this.color == null)
+	this.color = this.gui.addColor(this.scene.Board, "Color");
 	
 	//restartButton
-	
-	this.gui.add(this.scene, "RESETBOARD");
+	if(this.reset == null)
+	this.reset = this.gui.add(this.scene, "RESETBOARD");
 	
 	//undoButton
-	this.gui.add(this.scene.Board, "UNDO");
+	if(this.undo == null)
+	this.undo = this.gui.add(this.scene.Board, "UNDO");
+	
+	if(this.replay == null)
+	this.replay = this.gui.add(this.scene, "REPLAY");
+
 	
 	return true;
 }

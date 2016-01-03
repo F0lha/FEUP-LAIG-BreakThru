@@ -265,7 +265,7 @@ allPossibleMoves(Board,Player,CostLeft,X,Y,XF,YF,CostToSpend):-		between(1,11,XI
 
 %getRandomMove(Board,Player,CostLeft,X,Y,XF,YF,CostToSpend).
 
-getRandomMove(Board,Player,CostLeft,X,Y,XF,YF,CostToSpend):-listAllPossibleMoves(Board,Player,CostLeft,List),random_member(X-Y-XF-YF-CostToSpend,List).
+getRandomMove(Board,Player,CostLeft,X,Y,XF,YF,CostToSpend):-listAllPossibleMoves(Board,Player,CostLeft,List),random_select(X-Y-XF-YF-CostToSpend,List,_).
 							
 %playRandomMove(Board,Player,NewBoard,CostLeft).
 

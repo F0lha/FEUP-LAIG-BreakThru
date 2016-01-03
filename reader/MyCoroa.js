@@ -46,7 +46,7 @@
 			[0, 0.4, 0, 1],
 			[0, 0.7, 0, 1]]);
 
- 	this.ball = new MySphere(scene, 0.05, 30, 30);
+ 	this.ball = new MySphere(scene, 0.05, 20, 20);
  	
  };
 
